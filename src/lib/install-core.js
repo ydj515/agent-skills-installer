@@ -173,6 +173,73 @@ export async function cleanupStaleTemps(installRoot) {
   }
 }
 
+export async function installPreparedSkillsAtomically({
+  entries,
+  installRoot,
+  target,
+  scope,
+  packageVersion,
+  force
+}) {
+  const sessionTimestamp = Date.now();
+  const tempRoot = path.join(installRoot, TEMP_ROOT_DIR);
+  const sessionDir = path.join(tempRoot, `tmp-${process.pid}-${sessionTimestamp}-batch`);
+  const payloadRoot = path.join(sessionDir, "payload");
+  const backupRoot = path.join(sessionDir, "backup");
+  const tempMetaPath = path.join(sessionDir, TEMP_META_FILE);
+  const stagedEntries = [];
+
+  await fs.mkdir(payloadRoot, { recursive: true });
+  await writeJsonFile(tempMetaPath, {
+    pid: process.pid,
+    startedAt: new Date().toISOString(),
+    target,
+    scope,
+    skillIds: entries.map((entry) => entry.id)
+  });
+
+  try {
+    for (const entry of entries) {
+      const finalSkillDir = path.join(installRoot, entry.id);
+      const stagedPayloadDir = path.join(payloadRoot, entry.id);
+
+      await copyDirectoryStrict(entry.resolvedSourceDir, stagedPayloadDir);
+      await writeJsonFile(path.join(stagedPayloadDir, MARKER_FILE), {
+        schemaVersion: MARKER_SCHEMA_VERSION,
+        packageName: PACKAGE_NAME,
+        packageVersion,
+        skillId: entry.id,
+        installedFor: target,
+        scope,
+        installedAt: new Date().toISOString()
+      });
+
+      const existing = await inspectExistingSkill({
+        entry,
+        finalSkillDir,
+        target,
+        scope,
+        force
+      });
+
+      stagedEntries.push({
+        entry,
+        finalSkillDir,
+        stagedPayloadDir,
+        backupDir: path.join(backupRoot, entry.id),
+        needsBackup: existing.exists
+      });
+    }
+
+    await commitStagedEntries(stagedEntries, backupRoot);
+    await removePath(sessionDir);
+    return entries.map((entry) => entry.id);
+  } catch (error) {
+    await removePath(sessionDir).catch(() => {});
+    throw error;
+  }
+}
+
 export async function installPreparedSkill({
   entry,
   installRoot,
@@ -242,6 +309,98 @@ export async function installPreparedSkill({
   }
 }
 
+async function inspectExistingSkill({ entry, finalSkillDir, target, scope, force }) {
+  const exists = await pathExists(finalSkillDir);
+  if (!exists) {
+    return { exists: false };
+  }
+
+  if (!force) {
+    throw withFailedSkillId(
+      safetyError(
+        `Skill directory "${finalSkillDir}" already exists. Re-run with --force only if it was installed by ${PACKAGE_NAME}.`
+      ),
+      entry.id
+    );
+  }
+
+  const marker = await readMarkerOrThrow(finalSkillDir).catch((error) => {
+    throw withFailedSkillId(error, entry.id);
+  });
+
+  try {
+    assertMarkerMatches({ marker, targetDir: finalSkillDir, entry, target, scope });
+  } catch (error) {
+    throw withFailedSkillId(error, entry.id);
+  }
+
+  return { exists: true };
+}
+
+async function commitStagedEntries(stagedEntries, backupRoot) {
+  const committedEntries = [];
+
+  try {
+    for (const stagedEntry of stagedEntries) {
+      if (stagedEntry.needsBackup) {
+        await fs.mkdir(backupRoot, { recursive: true });
+        await fs.rename(stagedEntry.finalSkillDir, stagedEntry.backupDir).catch((error) => {
+          throw withFailedSkillId(
+            installError(
+              `Failed to back up existing skill directory "${stagedEntry.finalSkillDir}".`,
+              error
+            ),
+            stagedEntry.entry.id
+          );
+        });
+      }
+
+      await fs.rename(stagedEntry.stagedPayloadDir, stagedEntry.finalSkillDir).catch((error) => {
+        throw withFailedSkillId(
+          installError(
+            `Failed to move staged skill directory into "${stagedEntry.finalSkillDir}".`,
+            error
+          ),
+          stagedEntry.entry.id
+        );
+      });
+
+      committedEntries.push(stagedEntry);
+    }
+
+    if (await pathExists(backupRoot)) {
+      await removePath(backupRoot);
+    }
+  } catch (error) {
+    await rollbackCommittedEntries(committedEntries, stagedEntries).catch((rollbackError) => {
+      throw withFailedSkillId(
+        installError("Failed to roll back target installation after an error.", rollbackError),
+        error && typeof error === "object" && "failedSkillId" in error ? error.failedSkillId : undefined
+      );
+    });
+
+    throw error;
+  }
+}
+
+async function rollbackCommittedEntries(committedEntries, stagedEntries) {
+  for (const stagedEntry of [...stagedEntries].reverse()) {
+    if (await pathExists(stagedEntry.finalSkillDir)) {
+      await removePath(stagedEntry.finalSkillDir);
+    }
+
+    if (stagedEntry.needsBackup && (await pathExists(stagedEntry.backupDir))) {
+      await fs.rename(stagedEntry.backupDir, stagedEntry.finalSkillDir);
+    }
+  }
+
+  for (const stagedEntry of committedEntries) {
+    if (await pathExists(stagedEntry.stagedPayloadDir)) {
+      await removePath(stagedEntry.stagedPayloadDir);
+    }
+  }
+}
+
 async function readMarkerOrThrow(targetDir) {
   const markerPath = path.join(targetDir, MARKER_FILE);
   if (!(await pathExists(markerPath))) {
@@ -267,4 +426,21 @@ function assertMarkerMatches({ marker, targetDir, entry, target, scope }) {
   ) {
     throw markerInvalidError(targetDir);
   }
+}
+
+function withFailedSkillId(error, failedSkillId) {
+  if (!failedSkillId || !error || typeof error !== "object") {
+    return error;
+  }
+
+  if (!("failedSkillId" in error)) {
+    Object.defineProperty(error, "failedSkillId", {
+      value: failedSkillId,
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+  }
+
+  return error;
 }

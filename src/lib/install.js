@@ -4,9 +4,10 @@ import { getSkillMap, getSkillsForTarget } from "./catalog.js";
 import {
   acquireInstallLock,
   cleanupStaleTemps,
-  ensureWritableInstallRoot
+  ensureWritableInstallRoot,
+  installPreparedSkillsAtomically
 } from "./install-core.js";
-import { configError, usageError } from "./errors.js";
+import { configError, toCliError, usageError } from "./errors.js";
 
 export function buildInstallRequestsForDirectCommand(catalog, target) {
   if (target === "all") {
@@ -41,7 +42,6 @@ export async function installRequests({
 
   for (const request of requests) {
     const adapter = getTargetAdapter(request.target);
-    const installRoot = await adapter.resolveInstallRoot(scope, cwd);
 
     try {
       const result = await installTarget({
@@ -56,6 +56,7 @@ export async function installRequests({
       });
       results.push(result);
     } catch (error) {
+      const installRoot = await adapter.resolveInstallRoot(scope, cwd).catch(() => undefined);
       results.push({
         target: request.target,
         scope,
@@ -67,10 +68,6 @@ export async function installRequests({
         ok: false,
         error
       });
-
-      if (request.target !== "all" && requests.length === 1) {
-        throw error;
-      }
     }
   }
 
@@ -114,28 +111,39 @@ export async function installTarget({
 
   try {
     await cleanupStaleTemps(installRoot);
-    const installed = [];
+    const preparedSkills = [];
 
     for (const skill of skills) {
-      const preparedSkill = await adapter.prepareSkill(skill);
-      await adapter.installSkill({
-        entry: preparedSkill,
+      preparedSkills.push(await adapter.prepareSkill(skill));
+    }
+
+    try {
+      const installed = await installPreparedSkillsAtomically({
+        entries: preparedSkills,
         installRoot,
         target,
         scope,
         packageVersion,
         force
       });
-      installed.push(skill.id);
-    }
 
-    return {
-      ...plan,
-      installed,
-      skipped: [],
-      failed: [],
-      ok: true
-    };
+      return {
+        ...plan,
+        installed,
+        skipped: [],
+        failed: [],
+        ok: true
+      };
+    } catch (error) {
+      return {
+        ...plan,
+        installed: [],
+        skipped: [],
+        failed: resolveFailedSkillIds(plan.skills, error),
+        ok: false,
+        error
+      };
+    }
   } finally {
     await releaseLock();
   }
@@ -167,7 +175,15 @@ function resolveRequestedSkills(catalog, target, selectedSkillIds) {
 }
 
 export function summarizeExitCode(results) {
-  return results.every((result) => result.ok) ? 0 : 1;
+  if (results.every((result) => result.ok)) {
+    return 0;
+  }
+
+  if (results.length === 1) {
+    return toCliError(results[0].error).exitCode;
+  }
+
+  return 1;
 }
 
 export function formatSummary(result) {
@@ -182,4 +198,17 @@ export function formatSummary(result) {
     `- failed: ${result.failed.length === 0 ? "none" : result.failed.join(", ")}`,
     "- note: tool restart may be required to load new skills"
   ].join("\n");
+}
+
+function resolveFailedSkillIds(requestedSkillIds, error) {
+  if (
+    error &&
+    typeof error === "object" &&
+    "failedSkillId" in error &&
+    typeof error.failedSkillId === "string"
+  ) {
+    return [error.failedSkillId];
+  }
+
+  return requestedSkillIds;
 }
