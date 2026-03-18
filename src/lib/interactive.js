@@ -6,13 +6,15 @@ import { usageError } from "./errors.js";
 const RESET = "\u001b[0m";
 const INVERT = "\u001b[7m";
 
-export async function runInteractiveWizard(catalog) {
+export async function runInteractiveWizard(catalog, io) {
+  const promptIo = resolvePromptIo(io);
   const agent = await selectPrompt({
     message: "Select a target agent",
     items: TARGETS.concat("all").map((target) => ({
       label: target,
       value: target
-    }))
+    })),
+    io: promptIo
   });
 
   const scope = await selectPrompt({
@@ -20,14 +22,16 @@ export async function runInteractiveWizard(catalog) {
     items: [
       { label: "user", value: "user" },
       { label: "project", value: "project" }
-    ]
+    ],
+    io: promptIo
   });
 
   const skillChoices = buildInteractiveSkillChoices(catalog, agent);
   const selectedValues = await checkboxPrompt({
     message: "Select skills to install",
     items: skillChoices.items,
-    initialValues: skillChoices.initialValues
+    initialValues: skillChoices.initialValues,
+    io: promptIo
   });
 
   const requests = agent === "all" ? buildRequestsForAll(selectedValues) : [{ target: agent, selectedSkillIds: selectedValues }];
@@ -35,7 +39,7 @@ export async function runInteractiveWizard(catalog) {
 
   const confirmed = await confirmPrompt({
     message: `Confirm installation\n${summaryLines.map((line) => `  ${line}`).join("\n")}`
-  });
+  }, promptIo);
 
   if (!confirmed) {
     return null;
@@ -114,9 +118,10 @@ function buildSummaryLines(scope, requests) {
   return lines;
 }
 
-async function selectPrompt({ message, items }) {
+async function selectPrompt({ message, items, io }) {
   return runKeypressPrompt({
     initialState: { cursor: 0 },
+    io,
     render(state) {
       return [
         message,
@@ -149,7 +154,7 @@ async function selectPrompt({ message, items }) {
   });
 }
 
-async function checkboxPrompt({ message, items, initialValues }) {
+async function checkboxPrompt({ message, items, initialValues, io }) {
   const selectableIndexes = items
     .map((item, index) => ({ item, index }))
     .filter(({ item }) => item.type !== "separator")
@@ -161,6 +166,7 @@ async function checkboxPrompt({ message, items, initialValues }) {
       cursor: selectableIndexes[0] ?? 0,
       hint: ""
     },
+    io,
     render(state) {
       const lines = [
         `${message} (Space to toggle, Enter to confirm)`,
@@ -229,13 +235,14 @@ async function checkboxPrompt({ message, items, initialValues }) {
   });
 }
 
-async function confirmPrompt({ message }) {
+async function confirmPrompt({ message }, io) {
   const answer = await selectPrompt({
     message,
     items: [
       { label: "yes", value: true },
       { label: "no", value: false }
-    ]
+    ],
+    io
   });
 
   return answer;
@@ -251,9 +258,8 @@ function moveSelectable(selectableIndexes, currentIndex, direction) {
   return selectableIndexes[next];
 }
 
-async function runKeypressPrompt({ initialState, render, onKeypress }) {
-  const stdin = process.stdin;
-  const stdout = process.stdout;
+async function runKeypressPrompt({ initialState, render, onKeypress, io }) {
+  const { stdin, stdout } = resolvePromptIo(io);
   const rl = readline.createInterface({
     input: stdin,
     output: stdout
@@ -304,4 +310,11 @@ async function runKeypressPrompt({ initialState, render, onKeypress }) {
     stdin.on("keypress", onPress);
     repaint();
   });
+}
+
+function resolvePromptIo(io) {
+  return {
+    stdin: io?.stdin ?? process.stdin,
+    stdout: io?.stdout ?? process.stdout
+  };
 }

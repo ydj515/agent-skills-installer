@@ -4,25 +4,34 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple release-oriented changelog format.
 
-## [0.1.0] - 2026-03-18
+## [0.1.0]
+
+### Highlights
+
+- safer per-target installs with atomic rollback on failure
+- broader regression coverage for installer edge cases and interactive flow
+- stronger release verification with Node `20`/`22` CI and packed tarball `npx` smoke tests
 
 ### Added
 
 - public npm package scaffold for `agent-skills-installer`
 - direct install CLI for `codex`, `claude`, `gemini`, and `all`
-- interactive install wizard with single-select and checkbox steps
-- `catalog.json` with two bundled starter skills
-- starter skill fixtures:
-  - `instruction-only`
-  - `script-backed`
+- interactive install wizard with starter skill selection
+- bundled starter skills: `instruction-only`, `script-backed`
 - install path resolution for Codex, Claude Code, and Gemini CLI
-- ownership marker, lock file, stale temp cleanup, and staged install logic
+- ownership markers, lock files, stale temp cleanup, and staged installs
 - `--scope`, `--cwd`, `--dry-run`, and `--force` support
-- README for public npm usage and release copy
-- MIT license file
-- GitHub Actions workflow for verify-and-publish npm releases
+- regression coverage for install edge cases and interactive flow
+- GitHub Actions verification on Node `20` and `22`
+- packed tarball `npx` smoke test coverage
+- public README and MIT license
+
+### Fixed
+
+- atomic rollback when a target install fails part-way through
+- failure summaries and single-target exit codes now reflect actual install results
 
 ### Notes
 
-- `v0.1.0` is focused on the installer foundation and starter bundle flow.
-- `--skills`, `list`, `remove`, and `update` are planned for a later release.
+- `v0.1.0` focuses on the installer foundation and starter bundle flow.
+- `--skills`, `list`, `remove`, and `update` remain planned for a later release.

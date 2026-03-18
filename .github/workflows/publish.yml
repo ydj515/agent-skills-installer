@@ -1,6 +1,8 @@
-name: Publish Package
+name: CI and Publish Package
 
 on:
+  push:
+  pull_request:
   release:
     types:
       - published
@@ -26,7 +28,16 @@ permissions:
 
 jobs:
   verify:
+    name: Verify (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 20
+          - 22
+    env:
+      npm_config_cache: ${{ runner.temp }}/npm-cache
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +45,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
 
       - name: Show Node and npm versions
@@ -80,8 +91,23 @@ jobs:
       - name: Verify pack output
         run: npm pack --dry-run
 
-      - name: Verify CLI dry-run
-        run: node src/cli.js install all --scope project --cwd /tmp/agent-skills-installer-ci --dry-run
+      - name: Pack tarball
+        id: pack
+        run: |
+          TARBALL="$(npm pack --silent)"
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+
+      - name: Verify packed tarball with npx smoke test
+        run: |
+          PROJECT_DIR="${RUNNER_TEMP}/agent-skills-installer-smoke-${{ matrix.node-version }}"
+          mkdir -p "$PROJECT_DIR"
+
+          npx --yes --package "./${{ steps.pack.outputs.tarball }}" agent-skills-installer install all --scope project --cwd "$PROJECT_DIR"
+
+          test -f "$PROJECT_DIR/.agents/skills/instruction-only/SKILL.md"
+          test -f "$PROJECT_DIR/.claude/skills/instruction-only/SKILL.md"
+          test -f "$PROJECT_DIR/.gemini/skills/script-backed/scripts/print_context.sh"
+          test -x "$PROJECT_DIR/.gemini/skills/script-backed/scripts/print_context.sh"
 
   publish:
     runs-on: ubuntu-latest

@@ -240,6 +240,19 @@ Current scope:
 - User scope and project scope
 - Bundled starter skills
 - Ownership markers, lock files, and staged installs
+- Atomic per-target installs with rollback on failure
+- `install all` best-effort execution with per-target summaries
+- `--force` reinstall only for managed directories with valid markers
+
+Current verified coverage:
+
+- Lock conflict handling
+- Stale temp cleanup
+- Managed-directory `--force` reinstall
+- Marker corruption handling
+- `CODEX_HOME`-first user-scope resolution
+- Interactive wizard selection flow
+- Packed tarball `npx` smoke install
 
 Planned after `v1`:
 
@@ -263,11 +276,47 @@ Run a direct command locally:
 node src/cli.js install codex --scope project --dry-run
 ```
 
+Run the automated test suite:
+
+```bash
+npm test
+```
+
 Pack the publishable tarball:
 
 ```bash
 npm pack --dry-run
 ```
+
+Smoke-test the packed tarball locally:
+
+```bash
+TARBALL="$(npm pack --silent)"
+npx --yes --package "./$TARBALL" agent-skills-installer install all --scope project --cwd /tmp/agent-skills-installer-smoke
+```
+
+The current test suite covers:
+
+- Atomic rollback when a target install fails part-way through
+- `install all` partial failure behavior
+- CLI summary and error output for single-target failures
+- Lock conflicts and stale temp cleanup
+- `--force` reinstall and marker validation
+- User-scope root resolution for Codex
+- Interactive wizard request generation
+
+## CI
+
+GitHub Actions currently verifies the package on:
+
+- Node `20`
+- Node `22`
+
+The `verify` job runs on `push`, `pull_request`, `release`, and `workflow_dispatch`, and checks:
+
+- `npm test`
+- `npm pack --dry-run`
+- packed tarball installation via `npx --package <tarball>`
 
 ## Publishing
 

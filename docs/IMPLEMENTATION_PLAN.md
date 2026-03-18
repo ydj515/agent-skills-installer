@@ -560,19 +560,24 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
 - packed tarball 기준 스모크 테스트가 통과한다
 
 ## 15. 다음 단계
-1. `package.json` 생성
-   - `name`, `bin`, `files`, `publishConfig`를 공개 배포 기준으로 설정
-2. `catalog.json` 생성
-   - `schemaVersion=1`
-   - starter skill 2개 정의
-3. `src/` 골격 구현
-   - CLI 파서
-   - 대화형 설치 진입
-   - 타깃 어댑터
-   - 카탈로그 검증
-   - 잠금/스테이징/마커 기록
-4. README 작성
-5. 테스트 및 `npm pack` 검증
+
+### 완료된 기반 작업
+- [x] `package.json` 생성
+  공개 배포 기준 `name`, `bin`, `files`, `publishConfig` 설정
+- [x] `catalog.json` 생성
+  `schemaVersion=1`, starter skill 2개 정의
+- [x] `src/` 골격 구현
+  CLI 파서, 대화형 설치 진입, 타깃 어댑터, 카탈로그 검증, 잠금/스테이징/마커 기록
+- [x] README 작성
+- [x] 테스트 및 `npm pack` 검증
+
+### 남은 작업
+- [ ] 남은 예외 경로 테스트 보강
+  `lock` 메타데이터 손상, `EACCES`, symlink temp / source 예외
+- [ ] 문서와 릴리스 체크리스트 지속 정리
+  README 최신화, publish 전 검증 절차 점검
+- [ ] `v2` 기능 설계 구체화
+  `install --skills`, `list`, `remove`, `update`
 
 ## 참고 문서
 - https://developers.openai.com/codex/skills
