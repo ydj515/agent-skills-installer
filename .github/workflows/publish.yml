@@ -105,10 +105,10 @@ jobs:
 
           npx --yes --package "./${{ steps.pack.outputs.tarball }}" agent-skills-installer install all --scope project --cwd "$PROJECT_DIR"
 
-          test -f "$PROJECT_DIR/.agents/skills/instruction-only/SKILL.md"
-          test -f "$PROJECT_DIR/.claude/skills/instruction-only/SKILL.md"
-          test -f "$PROJECT_DIR/.gemini/skills/script-backed/scripts/print_context.sh"
-          test -x "$PROJECT_DIR/.gemini/skills/script-backed/scripts/print_context.sh"
+          test -f "$PROJECT_DIR/.codex/skills/playwright/agents/openai.yaml"
+          test -f "$PROJECT_DIR/.claude/skills/playwright/scripts/playwright_cli.sh"
+          test -f "$PROJECT_DIR/.gemini/skills/playwright/references/cli.md"
+          test ! -e "$PROJECT_DIR/.gemini/skills/playwright/agents/openai.yaml"
 
   publish:
     runs-on: ubuntu-latest

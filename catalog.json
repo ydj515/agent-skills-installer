@@ -2,26 +2,37 @@
   "schemaVersion": 2,
   "skills": [
     {
-      "id": "instruction-only",
-      "title": "Instruction Only",
-      "description": "Starter documentation-only skill used to validate markdown-only installs.",
+      "id": "gh-address-comments",
+      "title": "GH Address Comments",
+      "description": "Address GitHub PR review comments with bundled helper scripts and skill metadata.",
       "version": "1.0.0",
-      "sourceDir": "skills/instruction-only",
+      "sourceDir": "skills/gh-address-comments",
       "targets": ["codex", "claude", "gemini"],
       "enabledByDefault": true,
-      "tags": ["starter", "docs"],
-      "groups": ["starter", "core"]
+      "tags": ["github", "review"],
+      "groups": ["github", "review"]
     },
     {
-      "id": "script-backed",
-      "title": "Script Backed",
-      "description": "Starter skill with executable scripts used to validate asset copying and permissions.",
+      "id": "gh-fix-ci",
+      "title": "GH Fix CI",
+      "description": "Inspect failing GitHub Actions checks and guide CI fixes with bundled scripts.",
       "version": "1.0.0",
-      "sourceDir": "skills/script-backed",
-      "targets": ["codex", "gemini"],
+      "sourceDir": "skills/gh-fix-ci",
+      "targets": ["codex", "claude", "gemini"],
       "enabledByDefault": true,
-      "tags": ["starter", "scripts"],
-      "groups": ["starter", "automation"]
+      "tags": ["github", "ci"],
+      "groups": ["github", "ci"]
+    },
+    {
+      "id": "playwright",
+      "title": "Playwright",
+      "description": "Browser automation skill with bundled CLI wrapper, references, and assets.",
+      "version": "1.0.0",
+      "sourceDir": "skills/playwright",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["browser", "automation"],
+      "groups": ["browser", "automation"]
     }
   ]
 }

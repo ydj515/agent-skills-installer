@@ -1,6 +1,10 @@
 [tools]
 node = "24"
 
+[tasks.default]
+depends = ["start"]
+description = "Run start task"
+
 [tasks.start]
 description = "Run the CLI locally with the default mise Node version"
 run = "mise exec node@24 -- node src/cli.js"
@@ -46,9 +50,10 @@ cleanup() {
 trap cleanup EXIT INT TERM
 TARBALL=\"$(mise exec node@24 -- npm pack --silent --pack-destination \"$PACK_DIR\")\"
 NPM_CONFIG_CACHE=\"$CACHE_DIR\" mise exec node@24 -- npx --yes --package \"$PACK_DIR/$TARBALL\" agent-skills-installer install all --scope project --cwd \"$PROJECT_DIR\"
-test -f \"$PROJECT_DIR/.agents/skills/instruction-only/SKILL.md\"
-test -f \"$PROJECT_DIR/.claude/skills/instruction-only/SKILL.md\"
-test -x \"$PROJECT_DIR/.gemini/skills/script-backed/scripts/print_context.sh\"
+test -f \"$PROJECT_DIR/.codex/skills/playwright/agents/openai.yaml\"
+test -f \"$PROJECT_DIR/.claude/skills/playwright/scripts/playwright_cli.sh\"
+test -f \"$PROJECT_DIR/.gemini/skills/playwright/references/cli.md\"
+test ! -e \"$PROJECT_DIR/.gemini/skills/playwright/agents/openai.yaml\"
 """
 
 [tasks.verify]

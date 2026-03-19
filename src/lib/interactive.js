@@ -1,4 +1,7 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import readline from "node:readline";
+import { filterInstallPreviewForTarget } from "./adapters.js";
 import { TARGETS } from "./constants.js";
 import { getSkillsForTarget } from "./catalog.js";
 import { usageError } from "./errors.js";
@@ -8,17 +11,10 @@ const INVERT = "\u001b[7m";
 
 export async function runInteractiveWizard(catalog, io) {
   const promptIo = resolvePromptIo(io);
-  const agent = await selectPrompt({
-    message: "Select a target agent",
-    items: TARGETS.concat("all").map((target) => ({
-      label: target,
-      value: target
-    })),
-    io: promptIo
-  });
+  const selectedTargets = await targetCheckboxPrompt(promptIo);
 
   const scope = await selectPrompt({
-    message: "Select an install scope",
+    message: "Step 2 Select an install scope",
     items: [
       { label: "user", value: "user" },
       { label: "project", value: "project" }
@@ -26,19 +22,39 @@ export async function runInteractiveWizard(catalog, io) {
     io: promptIo
   });
 
-  const skillChoices = buildInteractiveSkillChoices(catalog, agent);
-  const selectedValues = await checkboxPrompt({
-    message: "Select skills to install",
-    items: skillChoices.items,
-    initialValues: skillChoices.initialValues,
-    io: promptIo
-  });
+  const requests = [];
+  const summarySelections = [];
 
-  const requests = agent === "all" ? buildRequestsForAll(selectedValues) : [{ target: agent, selectedSkillIds: selectedValues }];
-  const summaryLines = buildSummaryLines(scope, requests);
+  for (const [index, target] of selectedTargets.entries()) {
+    const skillChoices = await buildInteractiveSkillChoices(catalog, target);
+    const selectedSkillIds = await checkboxPrompt({
+      message: `Step ${index + 3} Select skills for ${target}`,
+      records: skillChoices.records,
+      initialValues: skillChoices.initialValues,
+      groups: skillChoices.groups,
+      tags: skillChoices.tags,
+      io: promptIo
+    });
+
+    requests.push({
+      target,
+      selectedSkillIds
+    });
+    summarySelections.push({
+      target,
+      label: formatInlineList(
+        skillChoices.records
+          .filter((record) => selectedSkillIds.includes(record.id))
+          .map((record) => record.title)
+      )
+    });
+  }
+
+  const summaryLines = buildSummaryLines(scope, summarySelections);
+  const confirmStep = selectedTargets.length + 3;
 
   const confirmed = await confirmPrompt({
-    message: `Confirm installation\n${summaryLines.map((line) => `  ${line}`).join("\n")}`
+    message: `Step ${confirmStep} Confirm installation\n${summaryLines.map((line) => `  ${line}`).join("\n")}`
   }, promptIo);
 
   if (!confirmed) {
@@ -51,86 +67,62 @@ export async function runInteractiveWizard(catalog, io) {
   };
 }
 
-function buildInteractiveSkillChoices(catalog, agent) {
-  if (agent !== "all") {
-    const skills = getSkillsForTarget(catalog, agent);
-    return {
-      items: skills.map((skill) => ({
-        label: skill.id,
-        value: skill.id
-      })),
-      initialValues: skills.filter((skill) => skill.enabledByDefault).map((skill) => skill.id)
-    };
-  }
-
-  const items = [];
+async function buildInteractiveSkillChoices(catalog, target) {
   const initialValues = [];
+  const records = [];
 
-  for (const target of TARGETS) {
-    items.push({
-      type: "separator",
-      label: `[${target}]`
+  for (const skill of getSkillsForTarget(catalog, target)) {
+    const installPreview = filterInstallPreviewForTarget(target, await resolveInstallPreview(skill));
+    records.push({
+      target,
+      value: skill.id,
+      id: skill.id,
+      title: skill.title ?? skill.id,
+      description: skill.description ?? "",
+      enabledByDefault: skill.enabledByDefault,
+      tags: [...(skill.tags ?? [])],
+      groups: [...(skill.groups ?? [])],
+      hidden: Boolean(skill.hidden),
+      deprecated: Boolean(skill.deprecated),
+      installPreview,
+      searchText: buildSearchText(target, skill)
     });
 
-    for (const skill of getSkillsForTarget(catalog, target)) {
-      const value = `${target}:${skill.id}`;
-      items.push({
-        label: skill.id,
-        value
-      });
-
-      if (skill.enabledByDefault) {
-        initialValues.push(value);
-      }
+    if (skill.enabledByDefault && !skill.hidden && !skill.deprecated) {
+      initialValues.push(skill.id);
     }
   }
 
-  return { items, initialValues };
+  return {
+    records,
+    initialValues,
+    groups: getDistinctMetadata(records, "groups"),
+    tags: getDistinctMetadata(records, "tags")
+  };
 }
 
-function buildRequestsForAll(selectedValues) {
-  const grouped = new Map();
-
-  for (const target of TARGETS) {
-    grouped.set(target, []);
-  }
-
-  for (const value of selectedValues) {
-    const [target, skillId] = value.split(":");
-    if (grouped.has(target) && skillId) {
-      grouped.get(target).push(skillId);
-    }
-  }
-
-  return TARGETS.map((target) => ({
-    target,
-    selectedSkillIds: grouped.get(target)
-  }));
-}
-
-function buildSummaryLines(scope, requests) {
+function buildSummaryLines(scope, selections) {
   const lines = [`scope: ${scope}`];
-  for (const request of requests) {
-    lines.push(
-      `${request.target}: ${request.selectedSkillIds.length === 0 ? "none" : request.selectedSkillIds.join(", ")}`
-    );
+  for (const selection of selections) {
+    lines.push(`${selection.target}: ${selection.label}`);
   }
   return lines;
 }
 
-async function selectPrompt({ message, items, io }) {
+async function selectPrompt({ message, items, io, initialIndex = 0 }) {
   return runKeypressPrompt({
-    initialState: { cursor: 0 },
+    initialState: { cursor: initialIndex },
     io,
     render(state) {
       return [
         message,
-        "Use Up/Down to move, Enter to confirm.",
+        "Use Up/Down to move, Space or Enter to confirm.",
         ...items.map((item, index) => {
           const active = index === state.cursor;
           const prefix = active ? `${INVERT}>${RESET}` : " ";
+          const marker = active ? "[o]" : "[ ]";
           const label = active ? `${INVERT}${item.label}${RESET}` : item.label;
-          return `${prefix} ${label}`;
+          return `${prefix} ${marker} ${label}`;
         })
       ];
     },
@@ -145,7 +137,7 @@ async function selectPrompt({ message, items, io }) {
         return undefined;
       }
 
-      if (key.name === "return") {
+      if (key.name === "return" || key.name === "space") {
         return items[state.cursor].value;
       }
 
@@ -154,37 +146,138 @@ async function selectPrompt({ message, items, io }) {
   });
 }
 
-async function checkboxPrompt({ message, items, initialValues, io }) {
-  const selectableIndexes = items
-    .map((item, index) => ({ item, index }))
-    .filter(({ item }) => item.type !== "separator")
-    .map(({ index }) => index);
+async function targetCheckboxPrompt(io) {
+  const selectedTargets = new Set(["codex"]);
+  const items = TARGETS.concat("all");
 
-  const selected = new Set(initialValues);
   return runKeypressPrompt({
     initialState: {
-      cursor: selectableIndexes[0] ?? 0,
+      cursor: 0,
       hint: ""
     },
     io,
     render(state) {
+      return [
+        "Step 1 Select target agents",
+        "Use Up/Down to move, Space to toggle, Enter to confirm.",
+        "Selecting all toggles every target.",
+        ...items.map((item, index) => {
+          const active = index === state.cursor;
+          const selected =
+            item === "all"
+              ? selectedTargets.size === TARGETS.length
+              : selectedTargets.has(item);
+          const prefix = active ? `${INVERT}>${RESET}` : " ";
+          const marker = selected ? "[o]" : "[ ]";
+          const label = active ? `${INVERT}${item}${RESET}` : item;
+          return `${prefix} ${marker} ${label}`;
+        }),
+        ...(state.hint ? [state.hint] : [])
+      ];
+    },
+    onKeypress(state, key) {
+      if (key.name === "up") {
+        state.cursor = (state.cursor - 1 + items.length) % items.length;
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "down") {
+        state.cursor = (state.cursor + 1) % items.length;
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "space") {
+        const current = items[state.cursor];
+        if (current === "all") {
+          if (selectedTargets.size === TARGETS.length) {
+            selectedTargets.clear();
+          } else {
+            for (const target of TARGETS) {
+              selectedTargets.add(target);
+            }
+          }
+        } else if (selectedTargets.has(current)) {
+          selectedTargets.delete(current);
+        } else {
+          selectedTargets.add(current);
+        }
+
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "return") {
+        if (selectedTargets.size === 0) {
+          state.hint = "Select at least one target before continuing.";
+          return undefined;
+        }
+
+        return TARGETS.filter((target) => selectedTargets.has(target));
+      }
+
+      return undefined;
+    }
+  });
+}
+
+async function checkboxPrompt({ message, records, initialValues, groups, tags, io }) {
+  const selected = new Set(initialValues);
+  return runKeypressPrompt({
+    initialState: {
+      cursor: 0,
+      hint: "",
+      searchQuery: "",
+      searchBuffer: "",
+      searchMode: false,
+      groupFilter: null,
+      tagFilter: null,
+      includeHidden: false,
+      includeDeprecated: false
+    },
+    io,
+    render(state) {
+      const visibleRecords = getVisibleRecords(records, state);
+      const hasAllItem = visibleRecords.length > 0;
+      const allSelected = hasAllItem && visibleRecords.every((record) => selected.has(record.value));
       const lines = [
         `${message} (Space to toggle, Enter to confirm)`,
         "Use Up/Down to move, Space to toggle, Enter to confirm."
       ];
+      lines.push(
+        "/: search  g: group  t: tag  h: hidden  d: deprecated  a: select visible  x: clear visible  r: reset filters"
+      );
+      lines.push(
+        `filters: search="${state.searchQuery || "all"}" group=${state.groupFilter ?? "all"} tag=${state.tagFilter ?? "all"} hidden=${state.includeHidden ? "on" : "off"} deprecated=${state.includeDeprecated ? "on" : "off"} visible=${visibleRecords.length} selected=${selected.size}`
+      );
+      lines.push("");
 
-      for (const [index, item] of items.entries()) {
-        if (item.type === "separator") {
-          lines.push(`  ${item.label}`);
-          continue;
+      if (state.searchMode) {
+        lines.push(`search: ${state.searchBuffer}`);
+        lines.push("Type to filter, Enter to apply, Esc to cancel.");
+        lines.push("");
+      }
+
+      if (visibleRecords.length === 0) {
+        lines.push("No skills match the current search or filter settings.");
+      } else {
+        for (const [index, record] of visibleRecords.entries()) {
+          const active = index === state.cursor;
+          const checked = selected.has(record.value);
+          const marker = checked ? "[o]" : "[ ]";
+          const prefix = active ? `${INVERT}>${RESET}` : " ";
+          const label = formatSkillSummaryLabel(record);
+          lines.push(`${prefix} ${marker} ${active ? `${INVERT}${label}${RESET}` : label}`);
         }
 
-        const active = index === state.cursor;
-        const checked = selected.has(item.value);
-        const marker = checked ? "[x]" : "[ ]";
-        const prefix = active ? `${INVERT}>${RESET}` : " ";
-        const label = active ? `${INVERT}${item.label}${RESET}` : item.label;
-        lines.push(`${prefix} ${marker} ${label}`);
+        lines.push("");
+        const allActive = state.cursor === visibleRecords.length;
+        const allMarker = allSelected ? "[o]" : "[ ]";
+        const allPrefix = allActive ? `${INVERT}>${RESET}` : " ";
+        const allText = "All Visible";
+        const allLabel = allActive ? `${INVERT}${allText}${RESET}` : allText;
+        lines.push(`${allPrefix} ${allMarker} ${allLabel}`);
       }
 
       if (state.hint) {
@@ -194,27 +287,108 @@ async function checkboxPrompt({ message, items, initialValues, io }) {
       return lines;
     },
     onKeypress(state, key) {
+      if (state.searchMode) {
+        return handleSearchModeKeypress({ state, key, records, selected });
+      }
+
+      const visibleRecords = getVisibleRecords(records, state);
+      const totalItems = visibleRecords.length === 0 ? 0 : visibleRecords.length + 1;
+
       if (key.name === "up") {
-        state.cursor = moveSelectable(selectableIndexes, state.cursor, -1);
+        state.cursor = moveCursor(state.cursor, totalItems, -1);
         state.hint = "";
         return undefined;
       }
 
       if (key.name === "down") {
-        state.cursor = moveSelectable(selectableIndexes, state.cursor, 1);
+        state.cursor = moveCursor(state.cursor, totalItems, 1);
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.sequence === "/") {
+        state.searchMode = true;
+        state.searchBuffer = state.searchQuery;
         state.hint = "";
         return undefined;
       }
 
       if (key.name === "space") {
-        const current = items[state.cursor];
-        if (current && current.type !== "separator") {
-          if (selected.has(current.value)) {
-            selected.delete(current.value);
-          } else {
-            selected.add(current.value);
+        if (visibleRecords.length > 0 && state.cursor === visibleRecords.length) {
+          const allSelected = visibleRecords.every((record) => selected.has(record.value));
+          for (const record of visibleRecords) {
+            if (allSelected) {
+              selected.delete(record.value);
+            } else {
+              selected.add(record.value);
+            }
+          }
+        } else {
+          const current = visibleRecords[state.cursor];
+          if (current) {
+            if (selected.has(current.value)) {
+              selected.delete(current.value);
+            } else {
+              selected.add(current.value);
+            }
           }
         }
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "g") {
+        state.groupFilter = cycleFilterValue(groups, state.groupFilter);
+        clampCursor(state, records);
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "t") {
+        state.tagFilter = cycleFilterValue(tags, state.tagFilter);
+        clampCursor(state, records);
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "h") {
+        state.includeHidden = !state.includeHidden;
+        clampCursor(state, records);
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "d") {
+        state.includeDeprecated = !state.includeDeprecated;
+        clampCursor(state, records);
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "a") {
+        for (const record of visibleRecords) {
+          selected.add(record.value);
+        }
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "x") {
+        for (const record of visibleRecords) {
+          selected.delete(record.value);
+        }
+        state.hint = "";
+        return undefined;
+      }
+
+      if (key.name === "r") {
+        state.searchQuery = "";
+        state.searchBuffer = "";
+        state.groupFilter = null;
+        state.tagFilter = null;
+        state.includeHidden = false;
+        state.includeDeprecated = false;
+        clampCursor(state, records);
         state.hint = "";
         return undefined;
       }
@@ -225,9 +399,7 @@ async function checkboxPrompt({ message, items, initialValues, io }) {
           return undefined;
         }
 
-        return items
-          .filter((item) => item.type !== "separator" && selected.has(item.value))
-          .map((item) => item.value);
+        return records.filter((record) => selected.has(record.value)).map((record) => record.value);
       }
 
       return undefined;
@@ -248,47 +420,35 @@ async function confirmPrompt({ message }, io) {
   return answer;
 }
 
-function moveSelectable(selectableIndexes, currentIndex, direction) {
-  const position = selectableIndexes.indexOf(currentIndex);
-  if (position === -1) {
-    return selectableIndexes[0] ?? 0;
+function moveCursor(currentIndex, total, direction) {
+  if (total <= 0) {
+    return 0;
   }
 
-  const next = (position + direction + selectableIndexes.length) % selectableIndexes.length;
-  return selectableIndexes[next];
+  return (currentIndex + direction + total) % total;
 }
 
 async function runKeypressPrompt({ initialState, render, onKeypress, io }) {
   const { stdin, stdout } = resolvePromptIo(io);
-  const rl = readline.createInterface({
-    input: stdin,
-    output: stdout
-  });
-
-  readline.emitKeypressEvents(stdin, rl);
+  readline.emitKeypressEvents(stdin);
   const previousRawMode = stdin.isRaw;
   stdin.setRawMode(true);
   stdin.resume();
   stdin.setEncoding("utf8");
-
-  let renderedLines = 0;
   const state = structuredClone(initialState);
 
   const repaint = () => {
     const lines = render(state);
-    if (renderedLines > 0) {
-      stdout.write(`\u001b[${renderedLines}A`);
-      stdout.write("\u001b[J");
-    }
-    renderedLines = lines.length;
+    stdout.write("\u001b[2J\u001b[H");
     stdout.write(`${lines.join("\n")}\n`);
   };
 
   return new Promise((resolve, reject) => {
     const cleanup = () => {
       stdin.removeListener("keypress", onPress);
+      stdin.pause();
       stdin.setRawMode(Boolean(previousRawMode));
-      rl.close();
+      stdout.write("\u001b[2J\u001b[H");
     };
 
     const onPress = (_value, key) => {
@@ -317,4 +477,186 @@ function resolvePromptIo(io) {
     stdin: io?.stdin ?? process.stdin,
     stdout: io?.stdout ?? process.stdout
   };
+}
+
+function buildSearchText(target, skill) {
+  return [
+    target,
+    skill.id,
+    skill.title,
+    skill.description,
+    ...(skill.tags ?? []),
+    ...(skill.groups ?? [])
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function getDistinctMetadata(records, field) {
+  const values = new Set();
+
+  for (const record of records) {
+    for (const value of record[field]) {
+      values.add(value);
+    }
+  }
+
+  return [...values].sort((left, right) => left.localeCompare(right));
+}
+
+function getVisibleRecords(records, state) {
+  const query = state.searchQuery.trim().toLowerCase();
+
+  return records.filter((record) => {
+    if (!state.includeHidden && record.hidden) {
+      return false;
+    }
+
+    if (!state.includeDeprecated && record.deprecated) {
+      return false;
+    }
+
+    if (state.groupFilter && !record.groups.includes(state.groupFilter)) {
+      return false;
+    }
+
+    if (state.tagFilter && !record.tags.includes(state.tagFilter)) {
+      return false;
+    }
+
+    if (query && !record.searchText.includes(query)) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function formatSkillSummaryLabel(record) {
+  const labelParts = [getInteractiveSkillLabel(record)];
+
+  if (record.hidden) {
+    labelParts.push("hidden");
+  }
+
+  if (record.deprecated) {
+    labelParts.push("deprecated");
+  }
+
+  return labelParts.join(" | ");
+}
+
+function getInteractiveSkillLabel(record) {
+  if (record.installPreview.length > 0) {
+    return `${record.title} (${summarizeInstallPreview(record.installPreview)})`;
+  }
+
+  return record.title;
+}
+
+function formatInlineList(values) {
+  return values.length === 0 ? "none" : values.join(", ");
+}
+
+async function resolveInstallPreview(skill) {
+  if (Array.isArray(skill.installPreview) && skill.installPreview.length > 0) {
+    return skill.installPreview;
+  }
+
+  if (typeof skill.resolvedSourceDir !== "string" || skill.resolvedSourceDir.length === 0) {
+    return [];
+  }
+
+  return listRelativeFiles(skill.resolvedSourceDir);
+}
+
+function summarizeInstallPreview(files) {
+  if (files.length <= 2) {
+    return files.join(", ");
+  }
+
+  return `${files.slice(0, 2).join(", ")}, +${files.length - 2} more`;
+}
+
+async function listRelativeFiles(rootDir, currentDir = rootDir) {
+  const entries = await fs.readdir(currentDir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const absolutePath = path.join(currentDir, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...(await listRelativeFiles(rootDir, absolutePath)));
+      continue;
+    }
+
+    if (!entry.isFile()) {
+      continue;
+    }
+
+    files.push(path.relative(rootDir, absolutePath).split(path.sep).join("/"));
+  }
+
+  return files.sort((left, right) => left.localeCompare(right));
+}
+
+function cycleFilterValue(values, currentValue) {
+  if (values.length === 0) {
+    return null;
+  }
+
+  if (currentValue == null) {
+    return values[0];
+  }
+
+  const index = values.indexOf(currentValue);
+  if (index === -1 || index === values.length - 1) {
+    return null;
+  }
+
+  return values[index + 1];
+}
+
+function clampCursor(state, records) {
+  const visibleRecords = getVisibleRecords(records, state);
+  if (visibleRecords.length === 0) {
+    state.cursor = 0;
+    return;
+  }
+
+  const lastIndex = visibleRecords.length;
+  if (state.cursor > lastIndex) {
+    state.cursor = lastIndex;
+  }
+}
+
+function handleSearchModeKeypress({ state, key, records }) {
+  if (key.name === "escape") {
+    state.searchMode = false;
+    state.searchBuffer = state.searchQuery;
+    state.hint = "";
+    return undefined;
+  }
+
+  if (key.name === "return") {
+    state.searchQuery = state.searchBuffer.trim();
+    state.searchMode = false;
+    clampCursor(state, records);
+    state.hint = "";
+    return undefined;
+  }
+
+  if (key.name === "backspace") {
+    state.searchBuffer = state.searchBuffer.slice(0, -1);
+    state.hint = "";
+    return undefined;
+  }
+
+  if (typeof key.sequence === "string" && key.sequence.length === 1 && !key.ctrl && !key.meta) {
+    state.searchBuffer += key.sequence;
+    state.hint = "";
+  }
+
+  return undefined;
 }

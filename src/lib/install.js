@@ -8,7 +8,7 @@ import {
   installPreparedSkillsAtomically
 } from "./install-core.js";
 import { toCliError } from "./errors.js";
-import { formatList } from "./utils.js";
+import { formatList, removePath } from "./utils.js";
 
 export function buildInstallRequestsForDirectCommand(catalog, target, selection = {}) {
   const useDefaults =
@@ -116,10 +116,10 @@ export async function installTarget({
 
   await ensureWritableInstallRoot(installRoot);
   const releaseLock = await acquireInstallLock(installRoot);
+  const preparedSkills = [];
 
   try {
     await cleanupStaleTemps(installRoot);
-    const preparedSkills = [];
 
     for (const skill of skills) {
       preparedSkills.push(await adapter.prepareSkill(skill));
@@ -155,6 +155,7 @@ export async function installTarget({
       };
     }
   } finally {
+    await cleanupPreparedSkills(preparedSkills);
     await releaseLock();
   }
 }
@@ -203,4 +204,18 @@ function resolveFailedSkillIds(requestedSkillIds, error) {
   }
 
   return requestedSkillIds;
+}
+
+async function cleanupPreparedSkills(preparedSkills) {
+  const cleanupTargets = new Set(
+    preparedSkills
+      .map((entry) => entry.cleanupPath)
+      .filter((cleanupPath) => typeof cleanupPath === "string" && cleanupPath.length > 0)
+  );
+
+  await Promise.all(
+    [...cleanupTargets].map(async (cleanupPath) => {
+      await removePath(cleanupPath).catch(() => {});
+    })
+  );
 }
