@@ -1,26 +1,9 @@
-name: CI and Publish Package
+name: Release Publish Package
 
 on:
-  push:
-  pull_request:
   release:
     types:
       - published
-  workflow_dispatch:
-    inputs:
-      publish:
-        description: Publish to npm after verification
-        required: false
-        default: false
-        type: boolean
-      version:
-        description: Package version to verify against package.json
-        required: true
-        type: string
-      tag:
-        description: Git tag to verify, for example v0.1.0
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -28,7 +11,7 @@ permissions:
 
 jobs:
   verify:
-    name: Verify (Node ${{ matrix.node-version }})
+    name: Verify Release (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -54,27 +37,7 @@ jobs:
           node --version
           npm --version
 
-      - name: Validate workflow_dispatch version and tag
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          INPUT_VERSION: ${{ inputs.version }}
-          INPUT_TAG: ${{ inputs.tag }}
-        run: |
-          PACKAGE_VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
-          EXPECTED_TAG="v${INPUT_VERSION}"
-
-          if [ "$PACKAGE_VERSION" != "$INPUT_VERSION" ]; then
-            echo "package.json version ($PACKAGE_VERSION) does not match workflow input version ($INPUT_VERSION)." >&2
-            exit 1
-          fi
-
-          if [ "$INPUT_TAG" != "$EXPECTED_TAG" ]; then
-            echo "workflow input tag ($INPUT_TAG) does not match expected tag ($EXPECTED_TAG)." >&2
-            exit 1
-          fi
-
       - name: Validate release tag against package version
-        if: github.event_name == 'release'
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
@@ -100,7 +63,7 @@ jobs:
 
       - name: Verify packed tarball with npx smoke test
         run: |
-          PROJECT_DIR="${RUNNER_TEMP}/agent-skills-installer-smoke-${{ matrix.node-version }}"
+          PROJECT_DIR="${RUNNER_TEMP}/agent-skills-installer-release-smoke-${{ matrix.node-version }}"
           mkdir -p "$PROJECT_DIR"
 
           npx --yes --package "./${{ steps.pack.outputs.tarball }}" agent-skills-installer install all --scope project --cwd "$PROJECT_DIR"
@@ -113,7 +76,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: verify
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish == true)
     steps:
       - name: Checkout
         uses: actions/checkout@v4

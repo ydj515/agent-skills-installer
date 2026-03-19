@@ -473,7 +473,7 @@ GitHub Actions currently verifies the package on:
 - Node `22`
 - Node `24`
 
-The `verify` job runs on `push`, `pull_request`, `release`, and `workflow_dispatch`, and checks:
+The CI workflow runs on `push`, `pull_request`, and `workflow_dispatch`, and checks:
 
 - `npm test`
 - `npm pack --dry-run`
@@ -484,21 +484,24 @@ That means:
 - runtime compatibility is guaranteed from Node `20`
 - contributors can reproduce the supported Node test matrix locally with `mise`
 - full pack and tarball smoke verification is enforced in CI on Node `20`, `22`, and `24`
+- release publishing re-runs the same verification in a separate release workflow before `npm publish`
 
 ## Publishing
 
 Recommended release flow:
 
-1. Verify the package contents:
+1. Update `package.json` and `CHANGELOG.md` for the release version, then merge that release commit into `main`.
+
+2. Wait for the `verify` workflow on `main` to pass.
+
+3. Create a GitHub Release whose tag matches the package version, for example `v0.1.1`.
+
+4. The `release` event will trigger the dedicated release workflow, which re-runs verification and then publishes automatically.
+
+If you want to reproduce the release checks locally first:
 
 ```bash
-npm pack --dry-run
-```
-
-2. Publish the public package:
-
-```bash
-npm publish --access public
+npm run verify
 ```
 
 Before publishing:
@@ -506,13 +509,14 @@ Before publishing:
 - confirm the package name is still available
 - confirm the tarball contains `README.md`, `catalog.json`, `skills/`, and `src/`
 - confirm the CLI still works with `npx agent-skills-installer`
-- confirm your npm account is ready for public publish and any required 2FA flow
+- confirm `package.json` version and the GitHub release tag match exactly
+- confirm the repository `NPM_TOKEN` secret is ready for release-time publish
 
 GitHub Actions secret:
 
 - create an npm token that can publish this package
 - add it to the repository as a GitHub Actions secret named `NPM_TOKEN`
-- the publish workflow maps `NPM_TOKEN` to `NODE_AUTH_TOKEN` during `npm publish`
+- the release-time publish workflow maps `NPM_TOKEN` to `NODE_AUTH_TOKEN` during `npm publish`
 
 ## References
 
