@@ -39,10 +39,10 @@ npx agent-skills-installer install codex
 npx agent-skills-installer install claude
 npx agent-skills-installer install gemini
 npx agent-skills-installer install all
-npx agent-skills-installer install codex --skills instruction-only
-npx agent-skills-installer install codex --tag docs
+npx agent-skills-installer install codex --skills playwright
+npx agent-skills-installer install codex --tag github
 npx agent-skills-installer list all
-npx agent-skills-installer remove codex --skills script-backed
+npx agent-skills-installer remove codex --skills gh-fix-ci
 npx agent-skills-installer update all
 ```
 
@@ -74,16 +74,31 @@ npx agent-skills-installer
 
 The wizard currently supports:
 
-1. Select one target: `codex`, `claude`, `gemini`, or `all`
+1. Select one or more targets: `codex`, `claude`, `gemini`, or toggle `all`
 2. Select one scope: `user` or `project`
-3. Select bundled starter skills with checkboxes
-4. Review the summary
-5. Confirm installation
+3. Choose skills one target at a time from the bundled catalog
+4. Search and filter larger target-specific skill lists
+5. Review the summary
+6. Confirm installation
 
 In interactive mode:
 
-- Single-choice steps use arrow keys and `Enter`
-- Multi-select skill steps use `Space` to toggle and `Enter` to continue
+- Target selection uses arrow keys, `Space`, and `Enter`
+- Choosing `all` toggles every individual target on or off
+- Each selected target gets its own step, for example `Select skills for codex`
+- The current bundled catalog exposes the same example skills in both interactive and direct CLI flows
+- Skill labels reflect the files and directories that will be installed after target-specific filtering
+- Custom skill selection uses `Space` to toggle and `Enter` to continue
+- Only the current step is shown on screen, so long lists do not stack across steps
+- Custom skill selection also supports:
+- `/` search by skill id, title, description, tag, group, or target
+- `g` cycle group filters
+- `t` cycle tag filters
+- `h` toggle hidden skills
+- `d` toggle deprecated skills
+- `a` select all currently visible skills
+- `x` clear all currently visible selections
+- `r` reset search and filter state
 
 ## Direct CLI
 
@@ -109,16 +124,67 @@ Notes:
 - `list` reports installed, available, unmanaged-conflict, and extra unmanaged directories per target
 - `--include-hidden` and `--include-deprecated` opt into metadata-hidden entries when they exist
 
-## Bundled starter skills
+## Bundled example skills
 
-The bundled catalog currently ships with two starter skills:
+The bundled catalog currently ships with these example skills:
 
-- `instruction-only`
-- `script-backed`
+- `gh-address-comments`: address GitHub PR comments with bundled scripts and UI assets
+- `gh-fix-ci`: inspect failing GitHub Actions checks and guide CI fixes
+- `playwright`: browser automation with a bundled CLI wrapper and references
 
-Direct CLI installs the bundled starter skills that are enabled by default for the selected target.
+`catalog.json` is the source of truth for the bundled skill list.
 
-Interactive mode lets the user choose from the same starter set.
+Direct CLI and interactive mode both use the same bundled catalog.
+
+The installer keeps one shared source tree per bundled skill in this package, then adapts the copied top-level files to each target's supported skill layout.
+
+## Target skill directory layouts
+
+Bundled skills are copied into each target's install root as normal directories.
+The installer filters the top-level contents per target before copying, so one packaged skill can install into multiple target-specific layouts safely.
+
+### Codex
+
+Codex keeps the full packaged skill directory, except ignored junk files such as `.DS_Store`.
+
+```text
+skill-name/
+├── SKILL.md          # Required: metadata + instructions
+├── scripts/          # Optional: executable code
+├── references/       # Optional: documentation
+├── assets/           # Optional: templates, resources
+├── agents/
+│   └── openai.yaml   # Optional: appearance and dependencies
+└── ...               # Optional: additional files or directories
+```
+
+### Gemini CLI
+
+Gemini CLI keeps only `SKILL.md`, `scripts/`, `references/`, and `assets/`.
+
+```text
+my-skill/
+├── SKILL.md          # Required: instructions and metadata
+├── scripts/          # Optional: executable scripts
+├── references/       # Optional: static documentation
+└── assets/           # Optional: templates and other resources
+```
+
+### Claude Code
+
+Claude Code keeps only `SKILL.md`, `template.md`, `examples/`, and `scripts/`.
+
+```text
+my-skill/
+├── SKILL.md          # Required: main instructions
+├── template.md       # Optional: template for Claude to fill in
+├── examples/
+│   └── sample.md     # Optional: example output showing expected format
+└── scripts/
+    └── validate.sh   # Optional: script Claude can execute
+```
+
+The current bundled example skills do not ship `template.md` or `examples/`, so Claude installs typically contain `SKILL.md` plus any bundled `scripts/`.
 
 ## Install locations
 
@@ -127,8 +193,7 @@ Interactive mode lets the user choose from the same starter set.
 Codex:
 
 1. `$CODEX_HOME/skills` if it exists
-2. `~/.codex/skills` if it exists
-3. `~/.agents/skills`
+2. `~/.codex/skills`
 
 Claude Code:
 
@@ -142,7 +207,7 @@ Gemini CLI:
 
 Codex:
 
-- `<cwd>/.agents/skills`
+- `<cwd>/.codex/skills`
 
 Claude Code:
 
@@ -220,9 +285,9 @@ Run `npx agent-skills-installer install <codex|claude|gemini|all> --scope user|p
 [agent-skills-installer] install summary
 - target: codex
 - scope: user
-- root: /Users/example/.agents/skills
-- selected: instruction-only, script-backed
-- installed: instruction-only, script-backed
+- root: /Users/example/.codex/skills
+- selected: gh-address-comments, gh-fix-ci, playwright
+- installed: gh-address-comments, gh-fix-ci, playwright
 - skipped: none
 - failed: none
 - note: tool restart may be required to load new skills
@@ -251,7 +316,9 @@ Current scope:
 - Interactive install
 - Direct install
 - User scope and project scope
-- Bundled starter skills
+- Bundled example skills
+- Target-adapted installs from a shared catalog
+- Interactive search and filter UX for larger catalogs
 - Catalog `schemaVersion=2`
 - Catalog metadata: `title`, `description`, `tags`, `groups`, `hidden`, `deprecated`
 - Ownership markers, lock files, and staged installs
@@ -276,6 +343,7 @@ Current verified coverage:
 - Marker corruption handling
 - `CODEX_HOME`-first user-scope resolution
 - Interactive wizard selection flow
+- Interactive wizard search, group filter, and hidden-skill toggle flow
 - `install --skills`
 - tag-based install filtering
 - `list` metadata and status output
@@ -285,8 +353,7 @@ Current verified coverage:
 
 Still planned:
 
-- larger bundled catalog beyond the starter set
-- interactive search and filter UX for bigger catalogs
+- larger bundled catalog beyond the current example set
 - richer presentation for hidden and deprecated catalog entries
 
 ## Development
@@ -396,7 +463,7 @@ The current test suite covers:
 - Lock conflicts and stale temp cleanup
 - `--force` reinstall and marker validation
 - User-scope root resolution for Codex
-- Interactive wizard request generation
+- Target-specific layout adaptation for Codex, Claude Code, and Gemini CLI
 
 ## CI
 

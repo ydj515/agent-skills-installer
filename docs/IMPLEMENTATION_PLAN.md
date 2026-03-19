@@ -152,8 +152,8 @@ npx agent-skills-installer update <codex|claude|gemini|all> [--skills <skill-a,s
   - TTY 환경이면 대화형 설치 시작
   - non-TTY 환경이면 사용법 출력 후 종료
 - `install codex`
-  - `user`: `CODEX_HOME/skills`가 존재하면 우선 사용, 아니면 `~/.codex/skills` 존재 여부를 확인하고, 둘 다 없으면 `~/.agents/skills`
-  - `project`: `<cwd>/.agents/skills`
+  - `user`: `CODEX_HOME/skills`가 존재하면 우선 사용하고, 아니면 `~/.codex/skills` 사용
+  - `project`: `<cwd>/.codex/skills`
 - `install claude`
   - `user`: `~/.claude/skills`
   - `project`: `<cwd>/.claude/skills`
@@ -216,8 +216,8 @@ npx agent-skills-installer update <codex|claude|gemini|all> [--skills <skill-a,s
 [agent-skills-installer] install summary
 - target: codex
 - scope: user
-- root: /Users/example/.agents/skills
-- installed: instruction-only, script-backed
+- root: /Users/example/.codex/skills
+- installed: gh-address-comments, gh-fix-ci, playwright
 - skipped: none
 - failed: none
 - note: tool restart may be required to load new skills
@@ -257,29 +257,34 @@ npx agent-skills-installer update <codex|claude|gemini|all> [--skills <skill-a,s
 ### Codex 경로 결정 정책
 - `codex` user scope는 아래 우선순위로 결정한다.
   1. `CODEX_HOME` 환경 변수가 설정되어 있고 `$CODEX_HOME/skills`가 존재하면 그 경로 사용
-  2. 아니면 `~/.codex/skills`가 존재하면 그 경로 사용
-  3. 둘 다 없으면 `~/.agents/skills` 사용
+  2. 아니면 `~/.codex/skills` 사용
 - 위 경로가 생성 불가 또는 쓰기 불가면 설치를 중단하고 가이드를 출력한다.
 - v1에서는 임의의 추가 호환 경로를 자동 탐색하지 않는다.
 
 ### 카탈로그 예시
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "skills": [
     {
-      "id": "instruction-only",
+      "id": "gh-address-comments",
       "version": "1.0.0",
-      "sourceDir": "skills/instruction-only",
+      "sourceDir": "skills/gh-address-comments",
       "targets": ["codex", "claude", "gemini"],
-      "enabledByDefault": true
+      "enabledByDefault": true,
+      "title": "GH Address Comments",
+      "tags": ["github", "review"],
+      "groups": ["github", "review"]
     },
     {
-      "id": "script-backed",
+      "id": "playwright",
       "version": "1.0.0",
-      "sourceDir": "skills/script-backed",
-      "targets": ["codex", "gemini"],
-      "enabledByDefault": true
+      "sourceDir": "skills/playwright",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "title": "Playwright",
+      "tags": ["browser", "automation"],
+      "groups": ["browser", "automation"]
     }
   ]
 }
@@ -307,7 +312,7 @@ npx agent-skills-installer update <codex|claude|gemini|all> [--skills <skill-a,s
 - 마커 파일이 손상되었거나 필수 필드가 없으면 자동 복구하지 않고 실패 처리한다.
 - 마커 손상 메시지 템플릿 예시:
 ```text
-[agent-skills-installer] MARKER_INVALID: The ownership marker in "/Users/example/.gemini/skills/script-backed" is missing or corrupted.
+[agent-skills-installer] MARKER_INVALID: The ownership marker in "/Users/example/.gemini/skills/playwright" is missing or corrupted.
 This directory cannot be safely overwritten.
 Remove the directory manually and reinstall, or choose a different install location.
 ```
@@ -407,17 +412,20 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
 ## 7. 초기 카탈로그 범위
 
 ### v1 초기 스킬
-- `instruction-only`
-  - 순수 문서형 스킬
-  - 공통 메타데이터 품질 검증용
-- `script-backed`
-  - `scripts/` 포함 스킬
-  - 자산 복사와 실행 가능 파일 처리 검증용
+- `gh-address-comments`
+  - GitHub PR 코멘트 대응용 예시 스킬
+  - `scripts/`, `assets/`, `agents/` 조합 검증용
+- `gh-fix-ci`
+  - GitHub Actions 실패 점검 예시 스킬
+  - 스크립트 포함 스킬의 설치/업데이트 검증용
+- `playwright`
+  - 브라우저 자동화 예시 스킬
+  - `references/`를 포함한 더 넓은 번들 구조 검증용
 
-### v1에서 이 두 개만 두는 이유
-- 설치기의 안정성을 빠르게 검증할 수 있다.
-- 대화형 설치와 직접 CLI를 같은 카탈로그로 검증하기 쉽다.
-- v2 기능보다 설치기 품질을 먼저 다듬을 수 있다.
+### v1에서 이 예시 묶음으로 시작하는 이유
+- 실제 사용 사례가 보이는 스킬 묶음으로 설치 결과를 검증할 수 있다.
+- 하나의 소스 번들을 타깃별 레이아웃으로 변환하는 어댑터 정책을 검증하기 쉽다.
+- v2 기능보다 설치기 품질과 배포 안정성을 먼저 다듬을 수 있다.
 
 ### v2 확장 방향
 - 더 많은 skill을 `catalog.json`에 추가한다.
@@ -510,7 +518,7 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
 > - v1과 v2 경계가 다시 섞이면 구현과 테스트 범위가 흔들립니다.
 > - `install all`에 대한 cross-target 롤백까지 v1에 넣으면 복잡도가 급격히 올라갑니다.
 > - 공개 설치기는 수동 디렉터리 덮어쓰기 사고가 가장 위험하므로 `--force`를 보수적으로 잡아야 합니다.
-> - 대화형 설치의 skill 체크박스는 v1 starter skill 범위로 제한해야 범위가 안정됩니다.
+> - 하나의 패키지된 스킬 소스를 여러 타깃 레이아웃으로 복사하므로, 타깃별 허용 top-level 항목 계약이 문서와 구현에서 항상 일치해야 합니다.
 > - 설치 가능한 skill 수가 많아지면 v2에서 `groups`와 `tags` 기반 필터링이 필요합니다.
 > - 실행 중인 agent 프로세스는 새 스킬을 즉시 인식하지 못할 수 있으므로, 설치 직후 재시작 안내가 필수입니다.
 > - 수동으로 이동한 스킬은 소유권 마커 기반 관리 대상에서 제외되므로, 사용자는 “재설치해야 다시 관리된다”는 점을 알아야 합니다.
@@ -526,7 +534,7 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
   - 같은 스킬을 세 번 관리해야 한다
   - 유지보수 비용이 크게 증가한다
 
-### 대안 2: Codex와 Gemini를 `.agents/skills` 하나로 완전 통합
+### 대안 2: Codex와 Gemini를 하나의 공통 skills 루트로 완전 통합
 - 장점:
   - 공통 표준 활용도가 높다
   - 파일 중복이 줄어든다
@@ -548,7 +556,7 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
 4. [x] `update` 명령과 선택 업데이트 추가
 5. [x] 카탈로그 스키마 확장
 6. [x] `groups`, `tags` 기반 필터링 추가
-7. [ ] 더 큰 카탈로그를 위한 대화형 검색/필터 UX 추가
+7. [x] 더 큰 카탈로그를 위한 대화형 검색/필터 UX 추가
 
 ## 14. 완료 조건(Definition of Done)
 - `npx agent-skills-installer`가 TTY에서 대화형 설치를 시작한다
@@ -565,7 +573,7 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
 - [x] `package.json` 생성
   공개 배포 기준 `name`, `bin`, `files`, `publishConfig` 설정
 - [x] `catalog.json` 생성
-  `schemaVersion=2`, starter skill 2개와 tags/groups 메타데이터 정의
+  `schemaVersion=2`, 번들 예시 skill 3개와 tags/groups 메타데이터 정의
 - [x] `src/` 골격 구현
   CLI 파서, 대화형 설치 진입, 타깃 어댑터, 카탈로그 검증, 잠금/스테이징/마커 기록
 - [x] README 작성
@@ -578,8 +586,10 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
   README 최신화, publish 전 검증 절차 점검
 - [x] `v2` 기능 구현
   `install --skills`, `list`, `remove`, `update`, tags/groups 기반 필터
-- [ ] 더 큰 카탈로그용 대화형 검색/필터 UX
-  starter skill 2개를 넘어서는 검색/탐색 UI
+- [x] 더 큰 카탈로그용 대화형 검색/필터 UX
+  번들 예시 skill 묶음을 넘어서는 검색/탐색 UI
+- [ ] 더 풍부한 카탈로그 표현 개선
+  hidden/deprecated 설명 강화, 더 많은 메타데이터 미리보기
 
 ## 참고 문서
 - https://developers.openai.com/codex/skills
