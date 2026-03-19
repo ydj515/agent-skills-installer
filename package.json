@@ -18,7 +18,14 @@
   },
   "scripts": {
     "start": "node ./src/cli.js",
-    "test": "node --test"
+    "test": "node --test",
+    "test:node20": "mise run test-node20",
+    "test:node22": "mise run test-node22",
+    "test:node24": "mise run test-node24",
+    "test:matrix": "mise run test-matrix",
+    "pack": "mise run pack",
+    "smoke": "mise run smoke",
+    "verify": "mise run verify"
   },
   "publishConfig": {
     "access": "public"

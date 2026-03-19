@@ -10,7 +10,7 @@ This project follows a simple release-oriented changelog format.
 
 - safer per-target installs with atomic rollback on failure
 - broader regression coverage for installer edge cases and interactive flow
-- stronger release verification with Node `20`/`22` CI and packed tarball `npx` smoke tests
+- stronger release verification with Node `20`/`22`/`24` CI, local `mise` test matrix support, and packed tarball `npx` smoke tests
 
 ### Added
 
@@ -18,11 +18,12 @@ This project follows a simple release-oriented changelog format.
 - direct install CLI for `codex`, `claude`, `gemini`, and `all`
 - interactive install wizard with starter skill selection
 - bundled starter skills: `instruction-only`, `script-backed`
-- install path resolution for Codex, Claude Code, and Gemini CLI
+- install path resolution for Codex, Clude Code, and Gemini CLI
 - ownership markers, lock files, stale temp cleanup, and staged installs
 - `--scope`, `--cwd`, `--dry-run`, and `--force` support
 - regression coverage for install edge cases and interactive flow
-- GitHub Actions verification on Node `20` and `22`
+- `mise`-based local development workflow with multi-version Node test tasks
+- GitHub Actions verification on Node `20`, `22`, and `24`
 - packed tarball `npx` smoke test coverage
 - public README and MIT license
 

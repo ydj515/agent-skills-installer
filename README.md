@@ -264,10 +264,33 @@ Planned after `v1`:
 
 ## Development
 
+Supported Node.js versions:
+
+- Runtime support starts at Node `20.0.0` as declared in `package.json#engines`
+- Supported and verified Node versions are `20`, `22`, and `24`
+- Local `mise` development defaults to Node `24`
+- CI verifies Node `20`, `22`, and `24`
+
+Set up the local toolchain with `mise`:
+
+```bash
+mise trust
+mise install
+mise tasks ls
+```
+
+`mise trust` is required once per clone before `mise` will execute this repository's tasks.
+
 Run the CLI locally:
 
 ```bash
 node src/cli.js
+```
+
+Run the CLI locally through `mise`:
+
+```bash
+mise run start --raw
 ```
 
 Run a direct command locally:
@@ -282,10 +305,33 @@ Run the automated test suite:
 npm test
 ```
 
+Run the automated test suite through `mise`:
+
+```bash
+mise run test
+```
+
+Run the automated test suite across the supported CI Node versions:
+
+```bash
+mise run test-node20
+mise run test-node22
+mise run test-node24
+mise run test-matrix
+```
+
+`test-node20`, `test-node24`, or `test-matrix` may download missing Node runtimes on first use.
+
 Pack the publishable tarball:
 
 ```bash
 npm pack --dry-run
+```
+
+Pack the publishable tarball through `mise`:
+
+```bash
+mise run pack
 ```
 
 Smoke-test the packed tarball locally:
@@ -293,6 +339,26 @@ Smoke-test the packed tarball locally:
 ```bash
 TARBALL="$(npm pack --silent)"
 npx --yes --package "./$TARBALL" agent-skills-installer install all --scope project --cwd /tmp/agent-skills-installer-smoke
+```
+
+Smoke-test the packed tarball through `mise`:
+
+```bash
+mise run smoke
+```
+
+Run the default local verification flow:
+
+```bash
+mise run verify
+```
+
+Equivalent npm script shortcuts are also available:
+
+```bash
+npm run smoke
+npm run verify
+npm run test:matrix
 ```
 
 The current test suite covers:
@@ -311,12 +377,19 @@ GitHub Actions currently verifies the package on:
 
 - Node `20`
 - Node `22`
+- Node `24`
 
 The `verify` job runs on `push`, `pull_request`, `release`, and `workflow_dispatch`, and checks:
 
 - `npm test`
 - `npm pack --dry-run`
 - packed tarball installation via `npx --package <tarball>`
+
+That means:
+
+- runtime compatibility is guaranteed from Node `20`
+- contributors can reproduce the supported Node test matrix locally with `mise`
+- full pack and tarball smoke verification is enforced in CI on Node `20`, `22`, and `24`
 
 ## Publishing
 
