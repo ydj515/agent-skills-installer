@@ -19,8 +19,6 @@ jobs:
           - 20
           - 22
           - 24
-    env:
-      npm_config_cache: ${{ runner.temp }}/npm-cache
     steps:
       - name: Checkout
         uses: actions/checkout@v4
