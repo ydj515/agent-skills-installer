@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 
 export const PACKAGE_NAME = "agent-skills-installer";
-export const CATALOG_SCHEMA_VERSION = 1;
+export const CATALOG_SCHEMA_VERSION = 2;
 export const MARKER_SCHEMA_VERSION = 1;
 export const MARKER_FILE = ".agent-skills-installer.json";
 export const LOCK_FILE = ".agent-skills-installer.lock";

@@ -10,6 +10,7 @@ This project follows a simple release-oriented changelog format.
 
 - safer per-target installs with atomic rollback on failure
 - broader regression coverage for installer edge cases and interactive flow
+- v2 skill management commands: `install --skills`, `list`, `remove`, and `update`
 - stronger release verification with Node `20`/`22`/`24` CI, local `mise` test matrix support, and packed tarball `npx` smoke tests
 
 ### Added
@@ -18,9 +19,11 @@ This project follows a simple release-oriented changelog format.
 - direct install CLI for `codex`, `claude`, `gemini`, and `all`
 - interactive install wizard with starter skill selection
 - bundled starter skills: `instruction-only`, `script-backed`
-- install path resolution for Codex, Clude Code, and Gemini CLI
+- catalog `schemaVersion=2` with `tags`, `groups`, `hidden`, and `deprecated` metadata support
+- install path resolution for Codex, Claude Code, and Gemini CLI
 - ownership markers, lock files, stale temp cleanup, and staged installs
 - `--scope`, `--cwd`, `--dry-run`, and `--force` support
+- `install --skills`, `list`, `remove`, and `update`
 - regression coverage for install edge cases and interactive flow
 - `mise`-based local development workflow with multi-version Node test tasks
 - GitHub Actions verification on Node `20`, `22`, and `24`
@@ -34,5 +37,5 @@ This project follows a simple release-oriented changelog format.
 
 ### Notes
 
-- `v0.1.0` focuses on the installer foundation and starter bundle flow.
-- `--skills`, `list`, `remove`, and `update` remain planned for a later release.
+- `v0.1.0` now covers the starter bundle flow and the first round of v2 catalog and management features.
+- larger catalogs and interactive search/filter UX remain planned for a later release.

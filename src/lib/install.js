@@ -1,30 +1,36 @@
 import { TARGETS } from "./constants.js";
 import { getTargetAdapter } from "./adapters.js";
-import { getSkillMap, getSkillsForTarget } from "./catalog.js";
+import { resolveSkillsForTarget } from "./catalog.js";
 import {
   acquireInstallLock,
   cleanupStaleTemps,
   ensureWritableInstallRoot,
   installPreparedSkillsAtomically
 } from "./install-core.js";
-import { configError, toCliError, usageError } from "./errors.js";
+import { toCliError } from "./errors.js";
+import { formatList } from "./utils.js";
 
-export function buildInstallRequestsForDirectCommand(catalog, target) {
+export function buildInstallRequestsForDirectCommand(catalog, target, selection = {}) {
+  const useDefaults =
+    selection.selectedSkillIds == null && !selection.tag && !selection.group;
+
   if (target === "all") {
     return TARGETS.map((entryTarget) => ({
       target: entryTarget,
-      selectedSkillIds: getSkillsForTarget(catalog, entryTarget, { enabledOnly: true }).map(
-        (skill) => skill.id
-      )
+      selectedSkillIds: resolveSkillsForTarget(catalog, entryTarget, {
+        ...selection,
+        enabledOnly: useDefaults
+      }).map((skill) => skill.id)
     }));
   }
 
   return [
     {
       target,
-      selectedSkillIds: getSkillsForTarget(catalog, target, { enabledOnly: true }).map(
-        (skill) => skill.id
-      )
+      selectedSkillIds: resolveSkillsForTarget(catalog, target, {
+        ...selection,
+        enabledOnly: useDefaults
+      }).map((skill) => skill.id)
     }
   ];
 }
@@ -58,6 +64,7 @@ export async function installRequests({
     } catch (error) {
       const installRoot = await adapter.resolveInstallRoot(scope, cwd).catch(() => undefined);
       results.push({
+        action: "install",
         target: request.target,
         scope,
         installRoot,
@@ -97,6 +104,7 @@ export async function installTarget({
 
   if (dryRun) {
     return {
+      action: "install",
       ...plan,
       installed: [],
       skipped: [],
@@ -128,6 +136,7 @@ export async function installTarget({
       });
 
       return {
+        action: "install",
         ...plan,
         installed,
         skipped: [],
@@ -136,6 +145,7 @@ export async function installTarget({
       };
     } catch (error) {
       return {
+        action: "install",
         ...plan,
         installed: [],
         skipped: [],
@@ -150,28 +160,10 @@ export async function installTarget({
 }
 
 function resolveRequestedSkills(catalog, target, selectedSkillIds) {
-  const supportedSkills = getSkillsForTarget(catalog, target);
-  if (selectedSkillIds == null) {
-    return supportedSkills.filter((skill) => skill.enabledByDefault);
-  }
-
-  const skillMap = getSkillMap(catalog);
-  const resolved = [];
-
-  for (const skillId of selectedSkillIds) {
-    const skill = skillMap.get(skillId);
-    if (!skill) {
-      throw configError(`Unknown skill "${skillId}" requested for "${target}".`);
-    }
-
-    if (!skill.targets.includes(target)) {
-      throw usageError(`Skill "${skillId}" is not supported for target "${target}".`);
-    }
-
-    resolved.push(skill);
-  }
-
-  return resolved;
+  return resolveSkillsForTarget(catalog, target, {
+    selectedSkillIds,
+    enabledOnly: selectedSkillIds == null
+  });
 }
 
 export function summarizeExitCode(results) {
@@ -192,10 +184,10 @@ export function formatSummary(result) {
     `- target: ${result.target}`,
     `- scope: ${result.scope}`,
     `- root: ${result.installRoot ?? "unresolved"}`,
-    `- selected: ${result.skills && result.skills.length > 0 ? result.skills.join(", ") : "none"}`,
-    `- installed: ${result.dryRun ? "none (dry-run)" : result.installed.length === 0 ? "none" : result.installed.join(", ")}`,
-    `- skipped: ${result.skipped.length === 0 ? "none" : result.skipped.join(", ")}`,
-    `- failed: ${result.failed.length === 0 ? "none" : result.failed.join(", ")}`,
+    `- selected: ${formatList(result.skills ?? [])}`,
+    `- installed: ${result.dryRun ? "none (dry-run)" : formatList(result.installed ?? [])}`,
+    `- skipped: ${formatList(result.skipped ?? [])}`,
+    `- failed: ${formatList(result.failed ?? [])}`,
     "- note: tool restart may be required to load new skills"
   ].join("\n");
 }

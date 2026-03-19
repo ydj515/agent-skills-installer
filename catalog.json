@@ -1,19 +1,27 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "skills": [
     {
       "id": "instruction-only",
+      "title": "Instruction Only",
+      "description": "Starter documentation-only skill used to validate markdown-only installs.",
       "version": "1.0.0",
       "sourceDir": "skills/instruction-only",
       "targets": ["codex", "claude", "gemini"],
-      "enabledByDefault": true
+      "enabledByDefault": true,
+      "tags": ["starter", "docs"],
+      "groups": ["starter", "core"]
     },
     {
       "id": "script-backed",
+      "title": "Script Backed",
+      "description": "Starter skill with executable scripts used to validate asset copying and permissions.",
       "version": "1.0.0",
       "sourceDir": "skills/script-backed",
       "targets": ["codex", "gemini"],
-      "enabledByDefault": true
+      "enabledByDefault": true,
+      "tags": ["starter", "scripts"],
+      "groups": ["starter", "automation"]
     }
   ]
 }

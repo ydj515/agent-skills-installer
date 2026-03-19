@@ -542,13 +542,13 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
   - 초기 계약과 정책을 더 명확히 적어야 한다
 
 ## 13. v2 로드맵
-1. `list` 명령 추가
-2. `install --skills` 선택 설치 추가
-3. `remove --skills` 제거 기능 추가
-4. `update` 명령과 선택 업데이트 추가
-5. 카탈로그 스키마 확장
-6. `groups`, `tags` 기반 필터링 추가
-7. 더 큰 카탈로그를 위한 대화형 검색/필터 UX 추가
+1. [x] `list` 명령 추가
+2. [x] `install --skills` 선택 설치 추가
+3. [x] `remove --skills` 제거 기능 추가
+4. [x] `update` 명령과 선택 업데이트 추가
+5. [x] 카탈로그 스키마 확장
+6. [x] `groups`, `tags` 기반 필터링 추가
+7. [ ] 더 큰 카탈로그를 위한 대화형 검색/필터 UX 추가
 
 ## 14. 완료 조건(Definition of Done)
 - `npx agent-skills-installer`가 TTY에서 대화형 설치를 시작한다
@@ -565,19 +565,21 @@ Fix the ownership or permissions for "/Users/example/.gemini", then retry, or in
 - [x] `package.json` 생성
   공개 배포 기준 `name`, `bin`, `files`, `publishConfig` 설정
 - [x] `catalog.json` 생성
-  `schemaVersion=1`, starter skill 2개 정의
+  `schemaVersion=2`, starter skill 2개와 tags/groups 메타데이터 정의
 - [x] `src/` 골격 구현
   CLI 파서, 대화형 설치 진입, 타깃 어댑터, 카탈로그 검증, 잠금/스테이징/마커 기록
 - [x] README 작성
 - [x] 테스트 및 `npm pack` 검증
 
 ### 남은 작업
-- [ ] 남은 예외 경로 테스트 보강
+- [x] 남은 예외 경로 테스트 보강
   `lock` 메타데이터 손상, `EACCES`, symlink temp / source 예외
-- [ ] 문서와 릴리스 체크리스트 지속 정리
+- [x] 문서와 릴리스 체크리스트 지속 정리
   README 최신화, publish 전 검증 절차 점검
-- [ ] `v2` 기능 설계 구체화
-  `install --skills`, `list`, `remove`, `update`
+- [x] `v2` 기능 구현
+  `install --skills`, `list`, `remove`, `update`, tags/groups 기반 필터
+- [ ] 더 큰 카탈로그용 대화형 검색/필터 UX
+  starter skill 2개를 넘어서는 검색/탐색 UI
 
 ## 참고 문서
 - https://developers.openai.com/codex/skills

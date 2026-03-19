@@ -39,6 +39,11 @@ npx agent-skills-installer install codex
 npx agent-skills-installer install claude
 npx agent-skills-installer install gemini
 npx agent-skills-installer install all
+npx agent-skills-installer install codex --skills instruction-only
+npx agent-skills-installer install codex --tag docs
+npx agent-skills-installer list all
+npx agent-skills-installer remove codex --skills script-backed
+npx agent-skills-installer update all
 ```
 
 Project-scope install:
@@ -82,23 +87,31 @@ In interactive mode:
 
 ## Direct CLI
 
-`v1` supports this command:
+The CLI currently supports these commands:
 
 ```bash
-npx agent-skills-installer install <codex|claude|gemini|all> [--scope user|project] [--cwd <path>] [--dry-run] [--force]
+npx agent-skills-installer install <codex|claude|gemini|all> [--scope user|project] [--cwd <path>] [--dry-run] [--force] [--skills <a,b>] [--tag <tag>] [--group <group>] [--include-hidden] [--include-deprecated]
+npx agent-skills-installer list <codex|claude|gemini|all> [--scope user|project] [--cwd <path>] [--skills <a,b>] [--tag <tag>] [--group <group>] [--include-hidden] [--include-deprecated]
+npx agent-skills-installer remove <codex|claude|gemini> [--scope user|project] [--cwd <path>] [--dry-run] (--skills <a,b> | --tag <tag> | --group <group>)
+npx agent-skills-installer update <codex|claude|gemini|all> [--scope user|project] [--cwd <path>] [--dry-run] [--skills <a,b>] [--tag <tag>] [--group <group>] [--include-hidden] [--include-deprecated]
 ```
 
 Notes:
 
 - The default scope is `user`
 - `--cwd` only affects `project` scope
-- `--dry-run` prints the resolved plan without copying files
+- `--dry-run` is supported for `install`, `remove`, and `update`
 - `--force` only works for directories that contain a valid ownership marker created by this package
-- `v1` does not support `--skills`, `list`, `remove`, or `update`
+- `--skills` selects explicit skill ids
+- `--tag` and `--group` filter catalog metadata
+- `remove` requires at least one selector: `--skills`, `--tag`, or `--group`
+- `update` refreshes only currently installed managed skills and skips missing ones
+- `list` reports installed, available, unmanaged-conflict, and extra unmanaged directories per target
+- `--include-hidden` and `--include-deprecated` opt into metadata-hidden entries when they exist
 
 ## Bundled starter skills
 
-`v1` ships with two starter skills:
+The bundled catalog currently ships with two starter skills:
 
 - `instruction-only`
 - `script-backed`
@@ -150,7 +163,7 @@ The installer is intentionally conservative.
 - Files are copied into a temp directory first and then moved into place
 - Stale locks and stale temp directories are cleaned up conservatively
 - Skill sources that resolve outside the package root are rejected
-- Symlinks inside bundled skill sources are rejected in `v1`
+- Symlinks inside bundled skill sources are rejected
 
 ## Conflict and overwrite behavior
 
@@ -239,28 +252,42 @@ Current scope:
 - Direct install
 - User scope and project scope
 - Bundled starter skills
+- Catalog `schemaVersion=2`
+- Catalog metadata: `title`, `description`, `tags`, `groups`, `hidden`, `deprecated`
 - Ownership markers, lock files, and staged installs
 - Atomic per-target installs with rollback on failure
 - `install all` best-effort execution with per-target summaries
+- `install --skills`
+- `list`
+- `remove`
+- `update`
+- tag/group-based skill filtering
 - `--force` reinstall only for managed directories with valid markers
 
 Current verified coverage:
 
 - Lock conflict handling
+- Corrupted lock metadata handling
 - Stale temp cleanup
+- Symlink temp entry rejection
+- Symlink source rejection
+- Permission denial (`EACCES`) handling
 - Managed-directory `--force` reinstall
 - Marker corruption handling
 - `CODEX_HOME`-first user-scope resolution
 - Interactive wizard selection flow
+- `install --skills`
+- tag-based install filtering
+- `list` metadata and status output
+- `remove --skills`
+- `update` skip/reinstall behavior
 - Packed tarball `npx` smoke install
 
-Planned after `v1`:
+Still planned:
 
-- `install --skills`
-- `list`
-- `remove`
-- `update`
-- richer catalog metadata such as groups and tags
+- larger bundled catalog beyond the starter set
+- interactive search and filter UX for bigger catalogs
+- richer presentation for hidden and deprecated catalog entries
 
 ## Development
 
