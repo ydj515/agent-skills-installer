@@ -4,7 +4,7 @@
   "description": "Install bundled Agent Skills for Codex, Claude Code, and Gemini CLI.",
   "type": "module",
   "bin": {
-    "agent-skills-installer": "./src/cli.js"
+    "agent-skills-installer": "src/cli.js"
   },
   "files": [
     "CHANGELOG.md",
@@ -40,5 +40,13 @@
     "gemini-cli",
     "installer"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ydj515/agent-skills-installer.git"
+  },
+  "homepage": "https://github.com/ydj515/agent-skills-installer",
+  "bugs": {
+    "url": "https://github.com/ydj515/agent-skills-installer/issues"
+  },
   "license": "MIT"
 }
