@@ -33,6 +33,17 @@
       "enabledByDefault": true,
       "tags": ["browser", "automation"],
       "groups": ["browser", "automation"]
+    },
+    {
+      "id": "trello",
+      "title": "Trello Workflow",
+      "description": "Problem-first Trello workflow skill with bundled API helpers and split references.",
+      "version": "1.0.0",
+      "sourceDir": "skills/trello",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["trello", "project-management"],
+      "groups": ["project-management", "automation"]
     }
   ]
 }

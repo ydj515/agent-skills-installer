@@ -1,0 +1,7 @@
+interface:
+  display_name: "Trello Workflow"
+  short_description: "Summarize and safely update Trello work"
+  icon_small: "./assets/trello-small.svg"
+  icon_large: "./assets/trello.svg"
+  brand_color: "#0C66E4"
+  default_prompt: "Use $trello to resolve the right Trello board, list, or card, summarize current state, and apply safe updates."

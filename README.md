@@ -40,6 +40,7 @@ npx agent-skills-installer install claude
 npx agent-skills-installer install gemini
 npx agent-skills-installer install all
 npx agent-skills-installer install codex --skills playwright
+npx agent-skills-installer install codex --skills trello
 npx agent-skills-installer install codex --tag github
 npx agent-skills-installer list all
 npx agent-skills-installer remove codex --skills gh-fix-ci
@@ -131,6 +132,7 @@ The bundled catalog currently ships with these example skills:
 - `gh-address-comments`: address GitHub PR comments with bundled scripts and UI assets
 - `gh-fix-ci`: inspect failing GitHub Actions checks and guide CI fixes
 - `playwright`: browser automation with a bundled CLI wrapper and references
+- `trello`: problem-first Trello workflow automation with bundled API helpers and split references
 
 `catalog.json` is the source of truth for the bundled skill list.
 
@@ -286,8 +288,8 @@ Run `npx agent-skills-installer install <codex|claude|gemini|all> --scope user|p
 - target: codex
 - scope: user
 - root: /Users/example/.codex/skills
-- selected: gh-address-comments, gh-fix-ci, playwright
-- installed: gh-address-comments, gh-fix-ci, playwright
+- selected: gh-address-comments, gh-fix-ci, playwright, trello
+- installed: gh-address-comments, gh-fix-ci, playwright, trello
 - skipped: none
 - failed: none
 - note: tool restart may be required to load new skills

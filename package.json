@@ -1,6 +1,6 @@
 {
   "name": "agent-skills-installer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Install bundled Agent Skills for Codex, Claude Code, and Gemini CLI.",
   "type": "module",
   "bin": {
@@ -11,7 +11,9 @@
     "LICENSE",
     "src",
     "catalog.json",
-    "skills"
+    "skills",
+    "!skills/**/__pycache__",
+    "!skills/**/*.py[cod]"
   ],
   "engines": {
     "node": ">=20.0.0"
