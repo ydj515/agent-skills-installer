@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple release-oriented changelog format.
 
+## [0.1.3]
+
+### Highlights
+
+- added new bundled `doc` and `pdf` skills
+- updated the catalog to include DOCX and PDF document management workflows
+
+### Added
+
+- bundled `doc` skill for reading, creating, and rendering DOCX documents
+- bundled `pdf` skill for PDF document extraction, generation, and layout verification
+
+### Changed
+
+- catalog updated to surface `doc` and `pdf` skills in installation flows
+
+### Notes
+
+- `v0.1.3` expands the document processing capabilities of the bundled skills catalog.
+
 ## [0.1.2]
 
 ### Highlights
