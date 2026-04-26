@@ -58,8 +58,10 @@ npx agent-skills-installer install all --scope project --dry-run
 
 The bundled catalog currently includes:
 
+- `doc`
 - `gh-address-comments`
 - `gh-fix-ci`
+- `pdf`
 - `playwright`
 - `trello`
 
