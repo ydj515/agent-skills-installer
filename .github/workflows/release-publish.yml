@@ -68,6 +68,7 @@ jobs:
 
           test -f "$PROJECT_DIR/.codex/skills/playwright/agents/openai.yaml"
           test -f "$PROJECT_DIR/.claude/skills/playwright/scripts/playwright_cli.sh"
+          test -f "$PROJECT_DIR/.claude/skills/playwright/references/cli.md"
           test -f "$PROJECT_DIR/.gemini/skills/playwright/references/cli.md"
           test ! -e "$PROJECT_DIR/.gemini/skills/playwright/agents/openai.yaml"
 

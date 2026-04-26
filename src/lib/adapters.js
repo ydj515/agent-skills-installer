@@ -9,7 +9,7 @@ import { installPreparedSkill } from "./install-core.js";
 const IGNORED_SOURCE_NAMES = new Set([".DS_Store"]);
 const TARGET_ALLOWED_TOP_LEVEL_NAMES = {
   codex: null,
-  claude: new Set(["SKILL.md", "template.md", "examples", "scripts"]),
+  claude: new Set(["SKILL.md", "template.md", "examples", "scripts", "references"]),
   gemini: new Set(["SKILL.md", "scripts", "references", "assets"])
 };
 

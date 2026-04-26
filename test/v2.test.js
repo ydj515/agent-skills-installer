@@ -174,7 +174,7 @@ test("install claude는 claude 레이아웃으로 번들을 축소해 설치한�
   );
   assert.equal(
     await pathExists(path.join(projectDir, ".claude", "skills", "playwright", "references", "cli.md")),
-    false
+    true
   );
   assert.equal(
     await pathExists(path.join(projectDir, ".claude", "skills", "playwright", "assets", "playwright.png")),

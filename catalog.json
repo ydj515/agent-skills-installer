@@ -44,6 +44,28 @@
       "enabledByDefault": true,
       "tags": ["trello", "project-management"],
       "groups": ["project-management", "automation"]
+    },
+    {
+      "id": "doc",
+      "title": "DOCX Skill",
+      "description": "Read, create, or edit DOCX documents with layout fidelity and visual rendering support.",
+      "version": "1.0.0",
+      "sourceDir": "skills/doc",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["docx", "document", "office"],
+      "groups": ["document", "automation"]
+    },
+    {
+      "id": "pdf",
+      "title": "PDF Skill",
+      "description": "Read, create, or review PDF files with rendering and layout verification.",
+      "version": "1.0.0",
+      "sourceDir": "skills/pdf",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["pdf", "document"],
+      "groups": ["document", "automation"]
     }
   ]
 }
