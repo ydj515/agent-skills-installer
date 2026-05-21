@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple release-oriented changelog format.
 
+## [0.1.4]
+
+### Highlights
+
+- added new bundled `gitlab mr review` and `modern minimal ui` skills
+
+### Added
+
+- bundled `gitlab mr review` Review merge requests in internal GitLab using the GitLab API
+- bundled `modern minimal ui` skill for Apply a polished modern UI layer to web apps
+
+### Changed
+
+- catalog updated to surface `gitlab mr review` and `modern-minimal-ui` skills in installation flows
+
+### Notes
+
+- `v0.1.4` expands the document processing capabilities of the bundled skills catalog.
+
 ## [0.1.3]
 
 ### Highlights
