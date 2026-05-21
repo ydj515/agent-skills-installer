@@ -1,0 +1,4 @@
+interface:
+  display_name: "Modern Minimal UI"
+  short_description: "Apply a polished modern UI layer to web apps"
+  default_prompt: "Use $modern-minimal-ui to upgrade this web UI with a modern minimal design system, preserve the existing product structure, and summarize the main visual changes."

@@ -1,0 +1,877 @@
+/* Modern Minimal UI - Components
+ * Requires tokens.css to be loaded first.
+ * All classes use the `mmu-` prefix to avoid collisions with host CSS.
+ * Interaction targets aim for >= 44x44px for touch (WCAG 2.5.5 AA). */
+
+/* ---------- Global overflow safety nets ----------
+ * Without these, intrinsic min-content sizes on inputs/selects/buttons can push
+ * grid and flex tracks wider than their assigned column, producing horizontal
+ * overflow on narrow viewports. We opt every interactive element into the
+ * "can shrink below its content" mode so the container's minmax(0, 1fr)
+ * actually has effect. */
+.mmu-shell *,
+.mmu-shell *::before,
+.mmu-shell *::after {
+    box-sizing: border-box;
+}
+
+.mmu-shell input,
+.mmu-shell select,
+.mmu-shell textarea,
+.mmu-shell button,
+.mmu-shell img,
+.mmu-shell svg {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.mmu-shell img,
+.mmu-shell svg {
+    height: auto;
+}
+
+/* Cards opt into "can shrink below my intrinsic min-content size" so they
+ * don't push their grid track wider than the column they were given.
+ * We deliberately do NOT add `overflow: hidden` here — that would clip
+ * intentional floating UI like the dropzone's X remove button or card
+ * hover shadows. If you need clipping for a specific component, add it
+ * to that component's selector, not here. */
+.mmu-hero-card,
+.mmu-surface-card,
+.mmu-card,
+.mmu-card-grid {
+    min-width: 0;
+}
+
+
+/* ---------- App shell layout ----------
+ * Two compositions, pick one per page:
+ *   .mmu-shell--topbar   header on top, content below
+ *   .mmu-shell--sidebar  sidebar on the left, content on the right (collapses to topbar on mobile)
+ * Both place `.mmu-shell__main` as the scrollable content region. */
+
+.mmu-shell {
+    min-height: 100vh;
+    display: grid;
+}
+
+.mmu-shell--topbar {
+    grid-template-rows: auto 1fr;
+}
+
+.mmu-shell--sidebar {
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+        "side header"
+        "side main";
+}
+
+.mmu-shell__header {
+    grid-area: header;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--mmu-border);
+    background: var(--mmu-surface);
+}
+
+.mmu-shell__sidebar {
+    grid-area: side;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 1.25rem 1rem;
+    border-right: 1px solid var(--mmu-border);
+    background: var(--mmu-surface);
+}
+
+.mmu-shell__main {
+    grid-area: main;
+    padding: 2rem clamp(1rem, 3vw, 2.5rem) 3rem;
+    overflow-x: hidden;
+}
+
+.mmu-shell--topbar .mmu-shell__header,
+.mmu-shell--topbar .mmu-shell__main {
+    grid-area: auto;
+}
+
+/* Sidebar shell uses a vertical nav; topbar shell uses a horizontal nav. */
+.mmu-shell--topbar .mmu-shell__nav .mmu-nav {
+    flex-direction: row;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+/* Sidebar context tweaks */
+.mmu-shell__sidebar .mmu-brand {
+    margin-bottom: 1rem;
+}
+
+.mmu-shell__header .mmu-page-title {
+    font-size: 1.1rem;
+}
+
+/* Header-right action group (theme toggle + hamburger + user menu etc.) */
+.mmu-toolbar {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mmu-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 700;
+    color: var(--mmu-text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+}
+
+.mmu-brand:hover {
+    color: var(--mmu-accent);
+}
+
+.mmu-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mmu-nav__link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--mmu-radius-md);
+    color: var(--mmu-text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+    transition:
+        background-color var(--mmu-transition-fast),
+        color var(--mmu-transition-fast);
+}
+
+.mmu-nav__link:hover {
+    color: var(--mmu-text);
+    background: var(--mmu-surface-muted);
+}
+
+.mmu-nav__link.is-active {
+    color: var(--mmu-accent-strong);
+    background: var(--mmu-accent-soft);
+}
+
+/* ---------- Hamburger toggle (mobile-only) ----------
+ * Visually-hidden on >= 768px. Toggles `is-open` on `.mmu-shell` to reveal a
+ * slide-in sidebar drawer. Pair with a `.mmu-shell__backdrop` to close on tap. */
+
+.mmu-hamburger {
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid var(--mmu-border);
+    border-radius: var(--mmu-radius-md);
+    background: var(--mmu-surface);
+    color: var(--mmu-text);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition:
+        background-color var(--mmu-transition-fast),
+        border-color var(--mmu-transition-fast);
+}
+
+.mmu-hamburger:hover,
+.mmu-hamburger:focus-visible {
+    border-color: var(--mmu-accent);
+    color: var(--mmu-accent);
+    outline: none;
+}
+
+.mmu-hamburger__bars {
+    display: grid;
+    gap: 0.25rem;
+    width: 1.1rem;
+}
+
+.mmu-hamburger__bars span {
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform var(--mmu-transition), opacity var(--mmu-transition);
+}
+
+.mmu-shell.is-open .mmu-hamburger__bars span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+.mmu-shell.is-open .mmu-hamburger__bars span:nth-child(2) {
+    opacity: 0;
+}
+.mmu-shell.is-open .mmu-hamburger__bars span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+.mmu-shell__backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 18;
+    background: rgba(2, 6, 23, 0.45);
+    backdrop-filter: blur(2px);
+}
+
+/* ---------- Theme toggle (light/dark switch) ---------- */
+
+.mmu-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid var(--mmu-border);
+    border-radius: var(--mmu-radius-pill);
+    background: var(--mmu-surface);
+    color: var(--mmu-text);
+    cursor: pointer;
+    transition:
+        background-color var(--mmu-transition-fast),
+        border-color var(--mmu-transition-fast),
+        color var(--mmu-transition-fast);
+}
+
+.mmu-theme-toggle:hover,
+.mmu-theme-toggle:focus-visible {
+    border-color: var(--mmu-accent);
+    color: var(--mmu-accent);
+    outline: none;
+}
+
+.mmu-theme-toggle__icon--sun,
+.mmu-theme-toggle__icon--moon {
+    display: inline-flex;
+}
+
+:root[data-theme="dark"] .mmu-theme-toggle__icon--sun {
+    display: none;
+}
+:root:not([data-theme="dark"]) .mmu-theme-toggle__icon--moon {
+    display: none;
+}
+
+/* ---------- Surface cards ---------- */
+
+.mmu-hero-card,
+.mmu-surface-card {
+    background: var(--mmu-surface);
+    border: 1px solid var(--mmu-border);
+    border-radius: var(--mmu-radius-xl);
+    box-shadow: var(--mmu-shadow);
+}
+
+.mmu-hero-card {
+    padding: 2rem;
+}
+
+.mmu-hero-card--compact {
+    padding: 1.75rem 2rem;
+}
+
+.mmu-surface-card {
+    padding: 1.5rem;
+    box-shadow: var(--mmu-shadow-soft);
+}
+
+.mmu-page-title {
+    margin-bottom: 0;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+/* ---------- Meta grid (label + value cells) ---------- */
+
+.mmu-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.mmu-meta-card {
+    padding: 1rem 1.1rem;
+    border-radius: var(--mmu-radius-md);
+    border: 1px solid var(--mmu-border);
+    background: var(--mmu-surface-muted);
+}
+
+.mmu-meta-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--mmu-text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.mmu-meta-value {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+/* ---------- Segmented toggle (locale switch etc.) ---------- */
+
+.mmu-segment {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem;
+    border: 1px solid var(--mmu-border);
+    border-radius: var(--mmu-radius-pill);
+    background: rgba(248, 250, 252, 0.92);
+    box-shadow: var(--mmu-shadow-soft);
+}
+
+.mmu-segment__option {
+    min-width: 3.2rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--mmu-radius-pill);
+    color: var(--mmu-text-muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition:
+        background-color var(--mmu-transition),
+        color var(--mmu-transition),
+        box-shadow var(--mmu-transition);
+}
+
+.mmu-segment__option:hover {
+    color: var(--mmu-text);
+}
+
+.mmu-segment__option.is-active {
+    background: var(--mmu-accent);
+    color: var(--mmu-text-on-accent);
+    box-shadow: 0 8px 18px rgba(99, 102, 241, 0.28);
+}
+
+/* ---------- Form chip (selectable card) ---------- */
+
+.mmu-chip-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 6rem;
+    padding: 0.75rem 0.95rem;
+    border: 1px solid var(--mmu-border);
+    border-radius: var(--mmu-radius-md);
+    background: var(--mmu-surface-muted);
+    font-weight: 600;
+    transition:
+        border-color var(--mmu-transition-fast),
+        background-color var(--mmu-transition-fast),
+        box-shadow var(--mmu-transition-fast);
+}
+
+.mmu-chip-card:has(input:checked) {
+    border-color: rgba(99, 102, 241, 0.45);
+    background: var(--mmu-accent-soft);
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35) inset;
+}
+
+/* ---------- File dropzone (4 states: default / dragover / selected / invalid) ---------- */
+
+.mmu-dropzone {
+    display: block;
+    padding: 1.4rem;
+    border: 1.5px dashed var(--mmu-border);
+    border-radius: var(--mmu-radius-lg);
+    background: var(--mmu-surface);
+    cursor: pointer;
+    transition:
+        border-color var(--mmu-transition),
+        background-color var(--mmu-transition),
+        box-shadow var(--mmu-transition);
+}
+
+.mmu-dropzone:hover,
+.mmu-dropzone:focus-within,
+.mmu-dropzone.is-dragover {
+    border-color: var(--mmu-accent);
+    background: var(--mmu-accent-soft);
+}
+
+.mmu-dropzone__body,
+.mmu-dropzone__success {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.mmu-dropzone__success {
+    display: none;
+    position: relative;
+}
+
+.mmu-dropzone__icon {
+    font-size: 1.8rem;
+    color: var(--mmu-accent);
+}
+
+.mmu-dropzone__success-icon {
+    font-size: 2rem;
+    color: var(--mmu-success);
+    line-height: 1;
+}
+
+.mmu-dropzone__title {
+    font-weight: 700;
+}
+
+.mmu-dropzone__hint {
+    color: var(--mmu-text-muted);
+    font-size: 0.95rem;
+}
+
+.mmu-dropzone__meta {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+    color: var(--mmu-text-muted);
+}
+
+.mmu-dropzone__filename {
+    font-weight: 700;
+    color: var(--mmu-accent-strong);
+    word-break: break-all;
+}
+
+.mmu-dropzone__size {
+    font-variant-numeric: tabular-nums;
+}
+
+.mmu-dropzone__remove {
+    position: absolute;
+    top: -0.25rem;
+    right: -0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 1px solid var(--mmu-border);
+    border-radius: var(--mmu-radius-pill);
+    background: #ffffff;
+    color: var(--mmu-text-muted);
+    cursor: pointer;
+    line-height: 1;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+    transition:
+        color var(--mmu-transition-fast),
+        border-color var(--mmu-transition-fast),
+        background-color var(--mmu-transition-fast),
+        transform var(--mmu-transition-fast);
+}
+
+.mmu-dropzone__remove:hover,
+.mmu-dropzone__remove:focus-visible {
+    color: var(--mmu-danger);
+    border-color: rgba(185, 28, 28, 0.35);
+    background: #fff1f2;
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.mmu-dropzone.is-selected {
+    border-style: solid;
+    border-color: rgba(16, 185, 129, 0.4);
+    background: var(--mmu-surface);
+}
+
+.mmu-dropzone.is-selected .mmu-dropzone__body {
+    display: none;
+}
+
+.mmu-dropzone.is-selected .mmu-dropzone__success {
+    display: grid;
+}
+
+.mmu-dropzone.is-invalid {
+    border-color: rgba(185, 28, 28, 0.55);
+    background: #fff5f5;
+}
+
+/* ---------- Percent hero (large number for progress pages) ---------- */
+
+.mmu-percent-hero {
+    display: grid;
+    place-items: center;
+    padding: 2rem 1.5rem;
+    border-radius: var(--mmu-radius-lg);
+    border: 1px solid var(--mmu-border);
+    background: var(--mmu-surface);
+    text-align: center;
+}
+
+.mmu-percent-hero__value {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--mmu-accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.mmu-percent-hero__stage {
+    margin-top: 0.75rem;
+    color: var(--mmu-text-muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+/* ---------- Thin progress bar ---------- */
+
+.mmu-progress {
+    height: 0.4rem;
+    border-radius: var(--mmu-radius-pill);
+    background: rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+
+.mmu-progress__bar {
+    height: 100%;
+    background: var(--mmu-accent);
+    border-radius: inherit;
+    transition: width var(--mmu-transition);
+}
+
+/* ---------- Step timeline (done / active / pending) ---------- */
+
+.mmu-timeline {
+    display: grid;
+    grid-template-columns: repeat(var(--mmu-timeline-steps, 5), minmax(0, 1fr));
+    align-items: start;
+    gap: 0;
+    padding: 0.5rem 0 0.25rem;
+    margin: 0;
+    list-style: none;
+}
+
+.mmu-timeline[data-steps="3"] { --mmu-timeline-steps: 3; }
+.mmu-timeline[data-steps="4"] { --mmu-timeline-steps: 4; }
+.mmu-timeline[data-steps="5"] { --mmu-timeline-steps: 5; }
+.mmu-timeline[data-steps="6"] { --mmu-timeline-steps: 6; }
+.mmu-timeline[data-steps="7"] { --mmu-timeline-steps: 7; }
+
+.mmu-timeline__step {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    position: relative;
+    text-align: center;
+    color: var(--mmu-text-muted);
+}
+
+.mmu-timeline__step::before {
+    content: "";
+    position: absolute;
+    top: 0.85rem;
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    background: rgba(15, 23, 42, 0.08);
+    z-index: 0;
+}
+
+.mmu-timeline__step:first-child::before {
+    content: none;
+}
+
+.mmu-timeline__dot {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--mmu-radius-pill);
+    background: #ffffff;
+    border: 2px solid rgba(15, 23, 42, 0.18);
+    color: rgba(15, 23, 42, 0.45);
+    font-size: 0.95rem;
+    transition:
+        background-color var(--mmu-transition),
+        border-color var(--mmu-transition),
+        color var(--mmu-transition),
+        box-shadow var(--mmu-transition);
+}
+
+.mmu-timeline__label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.mmu-timeline__step.is-done .mmu-timeline__dot {
+    background: var(--mmu-success);
+    border-color: var(--mmu-success);
+    color: var(--mmu-text-on-accent);
+}
+
+.mmu-timeline__step.is-done::before {
+    background: var(--mmu-success);
+}
+
+.mmu-timeline__step.is-active .mmu-timeline__dot {
+    background: var(--mmu-accent);
+    border-color: var(--mmu-accent);
+    color: var(--mmu-text-on-accent);
+    box-shadow: 0 0 0 3px var(--mmu-accent-soft);
+}
+
+.mmu-timeline__step.is-active::before {
+    background: var(--mmu-success);
+}
+
+.mmu-timeline__step.is-done .mmu-timeline__label,
+.mmu-timeline__step.is-active .mmu-timeline__label {
+    color: var(--mmu-text);
+}
+
+/* ---------- Artifact card grid (result/output pages) ---------- */
+
+.mmu-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.mmu-card {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 0.6rem;
+    padding: 1.1rem 1.15rem;
+    border-radius: var(--mmu-radius-lg);
+    border: 1px solid var(--mmu-border);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: var(--mmu-shadow-soft);
+    transition:
+        transform var(--mmu-transition),
+        box-shadow var(--mmu-transition),
+        border-color var(--mmu-transition);
+}
+
+.mmu-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(15, 23, 42, 0.18);
+    box-shadow: var(--mmu-shadow-lg);
+}
+
+.mmu-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.mmu-card__footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mmu-card__subtitle {
+    font-size: 0.78rem;
+    color: var(--mmu-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.mmu-card__title {
+    font-weight: 600;
+    color: var(--mmu-text);
+    word-break: break-all;
+    line-height: 1.35;
+}
+
+.mmu-card__size {
+    color: var(--mmu-text-muted);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Colored format chips for card headers.
+ * Use these classes (or add your own variants following the same pattern). */
+.mmu-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--mmu-radius-pill);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.mmu-chip--blue {
+    color: var(--mmu-chip-blue);
+    background: var(--mmu-chip-blue-bg);
+}
+
+.mmu-chip--green {
+    color: var(--mmu-chip-green);
+    background: var(--mmu-chip-green-bg);
+}
+
+.mmu-chip--amber {
+    color: var(--mmu-chip-amber);
+    background: var(--mmu-chip-amber-bg);
+}
+
+.mmu-chip--violet {
+    color: var(--mmu-chip-violet);
+    background: var(--mmu-chip-violet-bg);
+}
+
+/* ---------- Utilities ---------- */
+
+.mmu-btn-with-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.mmu-warning-stack:empty {
+    display: none;
+}
+
+.mmu-warning-stack > * + * {
+    margin-top: 0.5rem;
+}
+
+.mmu-empty-state {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--mmu-text-muted);
+    font-size: 0.95rem;
+}
+
+/* ---------- Responsive ----------
+ * Breakpoint convention: 768px = collapse sidebar + tighten paddings.
+ * Touch targets remain >= 44px even on narrow screens. */
+
+@media (max-width: 768px) {
+    .mmu-hero-card,
+    .mmu-hero-card--compact,
+    .mmu-surface-card {
+        padding: 1.25rem;
+        border-radius: var(--mmu-radius-lg);
+    }
+
+    .mmu-shell__main {
+        padding: 1.25rem 1rem 2rem;
+    }
+
+    .mmu-page-title {
+        font-size: 2rem;
+    }
+
+    .mmu-percent-hero__value {
+        font-size: 2.6rem;
+    }
+
+    .mmu-timeline {
+        /* Allow horizontal scroll on very narrow screens instead of squeezing labels */
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+
+    .mmu-timeline__label {
+        font-size: 0.72rem;
+    }
+
+    /* Sidebar shell collapses to a slide-in drawer; show the hamburger. */
+    .mmu-shell--sidebar {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "header"
+            "main";
+    }
+
+    .mmu-shell--sidebar .mmu-shell__sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(82vw, 320px);
+        height: 100vh;
+        z-index: 19;
+        transform: translateX(-105%);
+        transition: transform var(--mmu-transition);
+        box-shadow: var(--mmu-shadow);
+    }
+
+    .mmu-shell--sidebar.is-open .mmu-shell__sidebar {
+        transform: translateX(0);
+    }
+
+    .mmu-shell--sidebar.is-open .mmu-shell__backdrop {
+        display: block;
+    }
+
+    .mmu-hamburger {
+        display: inline-flex;
+    }
+
+    /* Topbar shell: condense brand + actions; hamburger surfaces a slide-down nav drawer */
+    .mmu-shell--topbar .mmu-shell__nav {
+        display: none;
+    }
+
+    .mmu-shell--topbar.is-open .mmu-shell__nav {
+        display: flex;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--mmu-border);
+        background: var(--mmu-surface);
+        box-shadow: var(--mmu-shadow-soft);
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+    }
+}

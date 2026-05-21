@@ -1,0 +1,46 @@
+{
+    "skill_name": "modern-minimal-ui",
+    "evals": [
+        {
+            "id": 0,
+            "name": "eval-upload-form",
+            "prompt": "Create a single self-contained webpage at `index.html` for a ZIP file upload form. Style the page so it looks modern and polished (not default Bootstrap). Required form fields: a 'Program name' text input, a 'Version' text input, a 'Language' dropdown (Korean/English), three 'Output format' checkboxes (docx, xlsx, md), an 'Include diagrams' boolean checkbox, a drag-and-drop file picker that accepts .zip files, and a submit button. The dropzone MUST visually change state when a valid file is selected (e.g. show filename and size, swap icon, allow removing the selected file with a small X button). Make the page responsive on mobile. Put CSS in a separate `styles.css` and JS in a separate `script.js`. Use vanilla JavaScript only — no jQuery. Support light/dark theme.",
+            "assertions": [
+                {"text": "Renders index.html with linked styles.css and script.js (no inline style attributes)"},
+                {"text": "Has all required form fields (programName, version, language, formats, includeDiagrams)"},
+                {"text": "Dropzone has at least 3 visual states (default / dragover / selected) toggled via class names"},
+                {"text": "JS handles drag-and-drop and file remove without jQuery"},
+                {"text": "Responsive: has at least one @media query targeting mobile widths"},
+                {"text": "Supports light/dark theme via data-theme attribute or prefers-color-scheme"}
+            ]
+        },
+        {
+            "id": 1,
+            "name": "eval-progress-page",
+            "prompt": "Create a self-contained `progress.html` page that shows job progress for a 5-stage data pipeline: Intake, Analysis, Diagrams, Rendering, Packaging. The page must show: (1) a large prominent current-percent value (e.g. '35%') styled to draw the eye, (2) the current stage name as a smaller label, (3) a horizontal step timeline indicating done / active / pending, (4) a thin progress bar, (5) an empty warnings area. Include JS that simulates progress by incrementing the percent every 600ms from 0 to 100 and crossing through each stage. Put CSS in `styles.css` and JS in `script.js`. Make it responsive on mobile and support light/dark theme. No jQuery.",
+            "assertions": [
+                {"text": "Renders progress.html with separate styles.css and script.js"},
+                {"text": "Has 5 timeline steps with class-based done/active/pending state"},
+                {"text": "Large current-percent number is visually prominent (large font, distinct color/gradient)"},
+                {"text": "Has a thin progress bar that animates with the percent"},
+                {"text": "JS updates timeline state as the percent crosses each stage threshold"},
+                {"text": "Responsive: has at least one @media query and touch-friendly tap targets"},
+                {"text": "Supports light/dark theme"}
+            ]
+        },
+        {
+            "id": 2,
+            "name": "eval-result-grid",
+            "prompt": "Create a self-contained `result.html` page that lists 6 downloadable artifacts in a card grid layout. The artifacts come from this hard-coded data in script.js: `const artifacts = [{format:'docx', module:'core', filename:'design_core.docx', sizeLabel:'1.2 MB', downloadUrl:'#'}, {format:'xlsx', module:'core', filename:'design_core.xlsx', sizeLabel:'920 KB', downloadUrl:'#'}, {format:'md', module:'core', filename:'design_core.md', sizeLabel:'12 KB', downloadUrl:'#'}, {format:'docx', module:'app', filename:'design_app.docx', sizeLabel:'890 KB', downloadUrl:'#'}, {format:'xlsx', module:'app', filename:'design_app.xlsx', sizeLabel:'640 KB', downloadUrl:'#'}, {format:'md', module:'app', filename:'design_app.md', sizeLabel:'9 KB', downloadUrl:'#'}];`. Each card must show: a colored format chip (different color per format), the module name as a subtitle, the filename, the file size, and a download button. Cards should lift on hover. Include a page header with the title 'Artifacts' and an expiry chip showing 'Expires 2026-05-21 18:00'. Put CSS in `styles.css` and JS in `script.js`. Build cards with DOM methods, not innerHTML. Responsive grid that collapses to a single column on mobile. Light/dark theme support.",
+            "assertions": [
+                {"text": "Renders result.html with separate styles.css and script.js"},
+                {"text": "Renders exactly 6 artifact cards from the array"},
+                {"text": "Format chips have distinct colors per format (docx/xlsx/md)"},
+                {"text": "JS uses createElement/textContent — no innerHTML for user-data fields"},
+                {"text": "Cards have hover lift effect (transform/translateY or box-shadow change)"},
+                {"text": "Grid is responsive — single column on mobile"},
+                {"text": "Supports light/dark theme"}
+            ]
+        }
+    ]
+}

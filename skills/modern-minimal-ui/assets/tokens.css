@@ -1,0 +1,116 @@
+/* Modern Minimal UI - Design Tokens
+ * Linear/Vercel-style indigo+violet accent on slate base.
+ * Framework-agnostic: drop into any project, reference via var(--...). */
+
+:root {
+    /* Surface */
+    --mmu-bg: #f6f7fb;
+    --mmu-bg-accent: rgba(99, 102, 241, 0.07);
+    --mmu-bg-accent-soft: rgba(139, 92, 246, 0.06);
+    --mmu-surface: rgba(255, 255, 255, 0.94);
+    --mmu-surface-muted: rgba(248, 250, 252, 0.92);
+    --mmu-border: rgba(15, 23, 42, 0.08);
+
+    /* Text */
+    --mmu-text: #0f172a;
+    --mmu-text-muted: #64748b;
+    --mmu-text-on-accent: #ffffff;
+
+    /* Accents — indigo primary, violet secondary, success green */
+    --mmu-accent: #6366f1;
+    --mmu-accent-strong: #4f46e5;
+    --mmu-accent-soft: rgba(99, 102, 241, 0.12);
+    --mmu-accent-2: #8b5cf6;
+    --mmu-success: #10b981;
+    --mmu-danger: #b91c1c;
+
+    /* Per-format chip colors — soft pastel backgrounds with strong text.
+     * Keep these calm; chips should label, not shout. */
+    --mmu-chip-blue: #1d4ed8;
+    --mmu-chip-blue-bg: #dbeafe;
+    --mmu-chip-green: #15803d;
+    --mmu-chip-green-bg: #dcfce7;
+    --mmu-chip-amber: #b45309;
+    --mmu-chip-amber-bg: #fef3c7;
+    --mmu-chip-violet: #6d28d9;
+    --mmu-chip-violet-bg: #ede9fe;
+
+    /* Radii */
+    --mmu-radius-sm: 0.7rem;
+    --mmu-radius-md: 1rem;
+    --mmu-radius-lg: 1.25rem;
+    --mmu-radius-xl: 1.5rem;
+    --mmu-radius-pill: 999px;
+
+    /* Elevation — neutral grey shadows (no colored glow by default) */
+    --mmu-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --mmu-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    --mmu-shadow-soft: 0 2px 8px rgba(15, 23, 42, 0.04);
+    --mmu-shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.10);
+
+    /* Motion */
+    --mmu-transition-fast: 0.15s ease;
+    --mmu-transition: 0.18s ease;
+
+    /* Gradients — kept available for opt-in use, but components default to solids */
+    --mmu-gradient-accent: linear-gradient(90deg, var(--mmu-accent) 0%, var(--mmu-accent-2) 100%);
+}
+
+/* ---------- Dark theme ----------
+ * Applied when the html/body has `data-theme="dark"`, OR when the user's OS
+ * is dark AND there is no explicit theme attribute (so the user choice wins).
+ * Always toggle via the data attribute; never depend on prefers-color-scheme alone. */
+
+:root[data-theme="dark"],
+:root[data-theme="dark"] body {
+    --mmu-bg: #0b1020;
+    --mmu-bg-accent: rgba(99, 102, 241, 0.15);
+    --mmu-bg-accent-soft: rgba(139, 92, 246, 0.12);
+    --mmu-surface: rgba(20, 26, 44, 0.94);
+    --mmu-surface-muted: rgba(28, 35, 56, 0.92);
+    --mmu-border: rgba(148, 163, 184, 0.18);
+
+    --mmu-text: #e2e8f0;
+    --mmu-text-muted: #94a3b8;
+
+    --mmu-accent: #818cf8;
+    --mmu-accent-strong: #6366f1;
+    --mmu-accent-soft: rgba(129, 140, 248, 0.22);
+    --mmu-accent-2: #a78bfa;
+    --mmu-success: #34d399;
+
+    --mmu-chip-blue: #bfdbfe;
+    --mmu-chip-blue-bg: #1e3a8a;
+    --mmu-chip-green: #bbf7d0;
+    --mmu-chip-green-bg: #14532d;
+    --mmu-chip-amber: #fde68a;
+    --mmu-chip-amber-bg: #78350f;
+    --mmu-chip-violet: #ddd6fe;
+    --mmu-chip-violet-bg: #4c1d95;
+
+    --mmu-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --mmu-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --mmu-shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.28);
+    --mmu-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+/* Respect OS preference only when the page has not yet opted in. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        color-scheme: dark;
+    }
+}
+
+/* Optional global body treatment.
+ * Skip this rule if your host framework already styles body.
+ * Keep the background calm — a single flat surface, no gradients. */
+body.mmu-body {
+    min-height: 100vh;
+    background-color: var(--mmu-bg);
+    color: var(--mmu-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition:
+        background-color var(--mmu-transition),
+        color var(--mmu-transition);
+}

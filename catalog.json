@@ -77,6 +77,17 @@
       "enabledByDefault": true,
       "tags": ["pdf", "document"],
       "groups": ["document", "automation"]
+    },
+    {
+      "id": "modern-minimal-ui",
+      "title": "Modern Minimal UI",
+      "description": "Apply a polished modern minimal UI system to Bootstrap, Tailwind, or vanilla web projects.",
+      "version": "1.0.0",
+      "sourceDir": "skills/modern-minimal-ui",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["frontend", "ui", "design"],
+      "groups": ["frontend", "design"]
     }
   ]
 }

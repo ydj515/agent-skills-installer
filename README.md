@@ -62,6 +62,7 @@ The bundled catalog currently includes:
 - `gh-address-comments`
 - `gh-fix-ci`
 - `gitlab-mr-review`
+- `modern-minimal-ui`
 - `pdf`
 - `playwright`
 - `trello`

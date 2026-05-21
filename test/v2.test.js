@@ -83,6 +83,40 @@ test("install --skills는 gitlab-mr-review 스킬도 설치할 수 있다", asyn
   assert.match(result.stdout, /- selected: gitlab-mr-review/);
 });
 
+test("install --skills는 modern-minimal-ui 스킬도 설치할 수 있다", async (t) => {
+  const projectDir = await createTempProject(t);
+
+  const result = runCli([
+    "install",
+    "codex",
+    "--scope",
+    "project",
+    "--cwd",
+    projectDir,
+    "--skills",
+    "modern-minimal-ui"
+  ]);
+
+  assert.equal(result.status, 0);
+  assert.equal(
+    await pathExists(path.join(projectDir, ".codex", "skills", "modern-minimal-ui", "SKILL.md")),
+    true
+  );
+  assert.equal(
+    await pathExists(
+      path.join(projectDir, ".codex", "skills", "modern-minimal-ui", "assets", "components.css")
+    ),
+    true
+  );
+  assert.equal(
+    await pathExists(
+      path.join(projectDir, ".codex", "skills", "modern-minimal-ui", "agents", "openai.yaml")
+    ),
+    true
+  );
+  assert.match(result.stdout, /- selected: modern-minimal-ui/);
+});
+
 test("install --tag는 카탈로그 태그 필터를 사용한다", async (t) => {
   const projectDir = await createTempProject(t);
 
