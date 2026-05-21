@@ -42,6 +42,47 @@ test("install --skills는 선택한 스킬만 설치한다", async (t) => {
   assert.match(result.stdout, /- selected: playwright/);
 });
 
+test("install --skills는 gitlab-mr-review 스킬도 설치할 수 있다", async (t) => {
+  const projectDir = await createTempProject(t);
+
+  const result = runCli([
+    "install",
+    "codex",
+    "--scope",
+    "project",
+    "--cwd",
+    projectDir,
+    "--skills",
+    "gitlab-mr-review"
+  ]);
+
+  assert.equal(result.status, 0);
+  assert.equal(
+    await pathExists(path.join(projectDir, ".codex", "skills", "gitlab-mr-review", "SKILL.md")),
+    true
+  );
+  assert.equal(
+    await pathExists(
+      path.join(projectDir, ".codex", "skills", "gitlab-mr-review", "scripts", "list_mrs.sh")
+    ),
+    true
+  );
+  assert.equal(
+    await pathExists(
+      path.join(
+        projectDir,
+        ".codex",
+        "skills",
+        "gitlab-mr-review",
+        "references",
+        "review-checklist.md"
+      )
+    ),
+    true
+  );
+  assert.match(result.stdout, /- selected: gitlab-mr-review/);
+});
+
 test("install --tag는 카탈로그 태그 필터를 사용한다", async (t) => {
   const projectDir = await createTempProject(t);
 

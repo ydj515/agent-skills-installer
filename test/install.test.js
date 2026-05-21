@@ -223,7 +223,8 @@ test("user scope 설치는 CODEX_HOME이 없으면 ~/.codex/skills를 사용한�
   const result = runCli(["install", "codex", "--scope", "user"], {
     env: {
       ...process.env,
-      HOME: homeDir
+      HOME: homeDir,
+      CODEX_HOME: ""
     }
   });
 

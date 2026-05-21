@@ -24,6 +24,17 @@
       "groups": ["github", "ci"]
     },
     {
+      "id": "gitlab-mr-review",
+      "title": "GitLab MR Review",
+      "description": "Review GitLab merge requests with bundled API helper scripts, references, and review workflows.",
+      "version": "1.0.0",
+      "sourceDir": "skills/gitlab-mr-review",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["gitlab", "review"],
+      "groups": ["gitlab", "review"]
+    },
+    {
       "id": "playwright",
       "title": "Playwright",
       "description": "Browser automation skill with bundled CLI wrapper, references, and assets.",

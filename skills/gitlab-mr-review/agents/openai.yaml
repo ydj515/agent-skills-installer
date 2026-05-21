@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitLab MR Review"
+  short_description: "GitLab API 기반으로 특정 프로젝트의 open MR을 조회하고 리뷰 초안을 작성합니다."
+  default_prompt: "특정 GitLab 프로젝트의 open merge request를 조회하고 변경점과 파이프라인 상태를 검토해 structured review draft를 작성해줘."
