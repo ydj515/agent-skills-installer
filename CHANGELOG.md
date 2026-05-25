@@ -10,7 +10,7 @@ This project follows a simple release-oriented changelog format.
 
 - added six bundled `mise-*` skills for env, policy, profile, review, task, and tool workflows
 - converted the new `mise-*` skills to self-contained reference layouts without a shared reference bundle
-- updated the catalog and regression coverage for the new optional `mise-*` skill set
+- updated the catalog and regression coverage for the new default bundled `mise-*` skill set
 
 ### Added
 
@@ -20,7 +20,7 @@ This project follows a simple release-oriented changelog format.
 
 ### Changed
 
-- catalog updated to surface the six `mise-*` skills as selectable bundled skills
+- catalog updated to surface the six `mise-*` skills in default bundled installation flows
 - `mise-*` references were copied into each skill directory so installs no longer depend on a shared `skills/references` tree
 
 ### Notes
