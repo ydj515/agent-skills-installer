@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple release-oriented changelog format.
 
+## [0.1.5]
+
+### Highlights
+
+- added six bundled `mise-*` skills for env, policy, profile, review, task, and tool workflows
+- converted the new `mise-*` skills to self-contained reference layouts without a shared reference bundle
+- updated the catalog and regression coverage for the new optional `mise-*` skill set
+
+### Added
+
+- bundled `mise-env`, `mise-policy`, `mise-profiles`, `mise-review`, `mise-tasks`, and `mise-tools` skills
+- self-contained `mise-review` validator script with JSON and text diagnostics
+- regression tests for `mise-*` catalog entries, self-contained reference resolution, and validator output
+
+### Changed
+
+- catalog updated to surface the six `mise-*` skills as selectable bundled skills
+- `mise-*` references were copied into each skill directory so installs no longer depend on a shared `skills/references` tree
+
+### Notes
+
+- the `mise-*` skills are now packaged as self-contained install units across Codex, Claude Code, and Gemini CLI layouts
+
 ## [0.1.4]
 
 ### Highlights
