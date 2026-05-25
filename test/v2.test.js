@@ -117,6 +117,60 @@ test("install --skills는 modern-minimal-ui 스킬도 설치할 수 있다", asy
   assert.match(result.stdout, /- selected: modern-minimal-ui/);
 });
 
+test("install --skills는 mise-review 스킬도 self-contained 레이아웃으로 설치할 수 있다", async (t) => {
+  const projectDir = await createTempProject(t);
+
+  const result = runCli([
+    "install",
+    "codex",
+    "--scope",
+    "project",
+    "--cwd",
+    projectDir,
+    "--skills",
+    "mise-review"
+  ]);
+
+  assert.equal(result.status, 0);
+  assert.equal(
+    await pathExists(path.join(projectDir, ".codex", "skills", "mise-review", "SKILL.md")),
+    true
+  );
+  assert.equal(
+    await pathExists(
+      path.join(
+        projectDir,
+        ".codex",
+        "skills",
+        "mise-review",
+        "references",
+        "profile-catalog.md"
+      )
+    ),
+    true
+  );
+  assert.equal(
+    await pathExists(
+      path.join(
+        projectDir,
+        ".codex",
+        "skills",
+        "mise-review",
+        "scripts",
+        "validate_mise_toml.py"
+      )
+    ),
+    true
+  );
+  assert.equal(
+    await pathExists(
+      path.join(projectDir, ".codex", "skills", "references")
+    ),
+    false
+  );
+  assert.match(result.stdout, /- selected: mise-review/);
+});
+
 test("install --tag는 카탈로그 태그 필터를 사용한다", async (t) => {
   const projectDir = await createTempProject(t);
 

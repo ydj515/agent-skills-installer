@@ -88,6 +88,72 @@
       "enabledByDefault": true,
       "tags": ["frontend", "ui", "design"],
       "groups": ["frontend", "design"]
+    },
+    {
+      "id": "mise-env",
+      "title": "Mise Env",
+      "description": "Design or review mise environment configuration, local overrides, and secret handling rules.",
+      "version": "1.0.0",
+      "sourceDir": "skills/mise-env",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["mise", "env", "config"],
+      "groups": ["mise", "config"]
+    },
+    {
+      "id": "mise-policy",
+      "title": "Mise Policy",
+      "description": "Apply shared mise selector, prerelease, and release-age policy across repositories.",
+      "version": "1.0.0",
+      "sourceDir": "skills/mise-policy",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["mise", "policy", "versions"],
+      "groups": ["mise", "policy"]
+    },
+    {
+      "id": "mise-profiles",
+      "title": "Mise Profiles",
+      "description": "Choose or review documented mise profiles and their ecosystem reference mappings.",
+      "version": "1.0.0",
+      "sourceDir": "skills/mise-profiles",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["mise", "profiles", "routing"],
+      "groups": ["mise", "profiles"]
+    },
+    {
+      "id": "mise-review",
+      "title": "Mise Review",
+      "description": "Review mise configuration files and report rule violations with bundled references and validator scripts.",
+      "version": "1.0.0",
+      "sourceDir": "skills/mise-review",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["mise", "review", "lint"],
+      "groups": ["mise", "review"]
+    },
+    {
+      "id": "mise-tasks",
+      "title": "Mise Tasks",
+      "description": "Design or review mise task definitions, task arguments, and task composition patterns.",
+      "version": "1.0.0",
+      "sourceDir": "skills/mise-tasks",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["mise", "tasks", "automation"],
+      "groups": ["mise", "tasks"]
+    },
+    {
+      "id": "mise-tools",
+      "title": "Mise Tools",
+      "description": "Author or review mise tool declarations, selector choices, and lock strategy.",
+      "version": "1.0.0",
+      "sourceDir": "skills/mise-tools",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["mise", "tools", "versions"],
+      "groups": ["mise", "tools"]
     }
   ]
 }

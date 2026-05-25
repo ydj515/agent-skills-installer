@@ -66,6 +66,7 @@ The bundled catalog currently includes:
 - `pdf`
 - `playwright`
 - `trello`
+- `mise-*`
 
 ## Node.js support
 
