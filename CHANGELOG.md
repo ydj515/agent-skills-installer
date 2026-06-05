@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple release-oriented changelog format.
 
+## [0.1.6]
+
+### Highlights
+
+- added bundled `a11y-audit-guide` and `a11y-fix-guide` skills to support web accessibility compliance workflows
+- resolved catalog alignment issues and testing assertions for default-enabled `mise-*` integration
+
+### Added
+
+- bundled `a11y-audit-guide` skill with runtime automation, axe-core diagnostics, and default configurations
+- bundled `a11y-fix-guide` skill with structured patterns for resolving standard accessibility issues
+
+### Fixed
+
+- corrected minor typos and aligned catalog testing rules to reflect that `mise-*` skills are enabled by default
+
 ## [0.1.5]
 
 ### Highlights
