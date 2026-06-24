@@ -4,7 +4,7 @@ set -euo pipefail
 
 # GitLab API 호출에 공통으로 사용하는 유틸리티 함수 모음이다.
 
-DEFAULT_OUTPUT_DIR="/Users/dongjin/dev/promptech/gitlab-review-reports"
+DEFAULT_OUTPUT_DIR="${HOME}/dev/gitlab-review-reports"
 
 require_env() {
   local name="$1"

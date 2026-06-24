@@ -16,7 +16,7 @@ description: Review merge requests in internal GitLab using the GitLab API. Use 
 2. `GITLAB_TOKEN` 환경 변수가 설정되어 있는지 확인한다.
 3. 대상 `project_id`를 사용자 입력 또는 환경 변수로 받는다.
 4. 인증 실패, 권한 부족, 잘못된 프로젝트 식별자라면 바로 원인을 설명하고 중단한다.
-5. 결과 저장 루트는 `/Users/dongjin/dev/promptech/gitlab-review-reports` 를 기본값으로 사용한다.
+5. 결과 저장 루트는 `~/dev/gitlab-review-reports` 를 기본값으로 사용한다.
 
 ## 입력 규칙
 
@@ -171,7 +171,7 @@ description: Review merge requests in internal GitLab using the GitLab API. Use 
 ## 결과 저장 규칙
 
 - 출력 모드는 고정으로 `chat + markdown` 이다.
-- markdown 저장 루트는 `/Users/dongjin/dev/promptech/gitlab-review-reports` 이다.
+- markdown 저장 루트는 `~/dev/gitlab-review-reports` 이다.
 - 프로젝트별 하위 디렉터리는 `project-<project_id>` 형식을 사용한다.
 - MR별 파일명은 `<YYYY-MM-DD-HHMM>-mr-<mr_iid>.md` 형식을 사용한다.
 - summary 파일명은 `<YYYY-MM-DD-HHMM>-summary.md` 형식을 사용한다.
