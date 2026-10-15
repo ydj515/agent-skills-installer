@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple release-oriented changelog format.
 
+## [0.1.7]
+
+### Highlights
+
+- added a bundled `architecture-diagram` skill for standalone HTML architecture diagrams and resource allocation plans
+- refreshed the `mise-*` skills against the mise 2026.10 documentation and added `mise-lock` and `mise-ci` skills
+- registered the `a11y-audit-guide` and `a11y-fix-guide` skills in the catalog so they can be installed
+- translated the `architecture-diagram` and `mise-*` skill content to English
+
+### Added
+
+- bundled `architecture-diagram` skill with an allocation reference and a visual reference HTML sample
+- bundled `mise-lock` skill for `mise.lock` creation, platform entries, locked mode, and safe version bumps
+- bundled `mise-ci` skill for locked CI installs, download caching, safe mode on untrusted branches, and Docker installs
+- lockfile, CI integration, and secrets references for the `mise-*` skills
+- a task definition rule that requires `description`, `usage` with `about`, and `run` for every mise task
+- a tool execution rule that avoids `mise exec` when a task uses the `[tools]` version
+- regression tests for the `architecture-diagram` install layout, the `a11y-*` catalog entries, and the mise task definition rule
+
+### Changed
+
+- updated `mise-*` guidance for backend priority, version request syntax, `minimum_release_age`, Tera v2 templates, `python.uv_venv_auto`, monorepo `//path:task` names, task `skip_if`, `timeout`, and `sources`/`outputs`
+- updated starter profile examples to Python `3.14`, uv `0.13`, Java `zulu-25`, and Gradle `9.8`
+- replaced the `mise-review` validator with the shared rule set covering deprecated syntax, the task definition rule, and lockfile checks
+- renamed skill-local `mise-*` checklists so they no longer collide with shared reference file names
+- pinned the repository's mise Node version to `24.19.0` and aligned the repository's own mise tasks with the task rules
+
+### Fixed
+
+- fixed the Java vendor rule in the `mise-review` validator, which never matched because of an escaped regular expression
+- fixed invalid TOML and `usage` syntax in `mise-*` examples (unquoted task names with `:` and `choices=[...]`)
+- removed absolute paths from the `gitlab-mr-review` skill documentation
+
 ## [0.1.6]
 
 ### Highlights
