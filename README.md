@@ -58,6 +58,9 @@ npx agent-skills-installer install all --scope project --dry-run
 
 The bundled catalog currently includes:
 
+- `a11y-audit-guide`
+- `a11y-fix-guide`
+- `architecture-diagram`
 - `doc`
 - `gh-address-comments`
 - `gh-fix-ci`

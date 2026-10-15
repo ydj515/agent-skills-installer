@@ -154,6 +154,39 @@
       "enabledByDefault": true,
       "tags": ["mise", "tools", "versions"],
       "groups": ["mise", "tools"]
+    },
+    {
+      "id": "a11y-audit-guide",
+      "title": "A11y Audit Guide",
+      "description": "Audit web URLs with Playwright and axe-core and produce JSON plus Markdown accessibility reports.",
+      "version": "1.0.0",
+      "sourceDir": "skills/a11y-audit-guide",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["a11y", "accessibility", "playwright"],
+      "groups": ["frontend", "quality"]
+    },
+    {
+      "id": "a11y-fix-guide",
+      "title": "A11y Fix Guide",
+      "description": "Fix actionable axe accessibility findings from audit reports, asking before any color-contrast change.",
+      "version": "1.0.0",
+      "sourceDir": "skills/a11y-fix-guide",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["a11y", "accessibility", "remediation"],
+      "groups": ["frontend", "quality"]
+    },
+    {
+      "id": "architecture-diagram",
+      "title": "Architecture Diagram",
+      "description": "Build standalone HTML architecture diagrams with card layouts, SVG connectors, and resource allocation tables from spreadsheets, images, or text requirements.",
+      "version": "1.0.0",
+      "sourceDir": "skills/architecture-diagram",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["architecture", "diagram", "html"],
+      "groups": ["design", "document"]
     }
   ]
 }

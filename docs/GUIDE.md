@@ -65,6 +65,9 @@ Notes:
 
 The bundled catalog currently ships with these skills:
 
+- `a11y-audit-guide`: audit web URLs with Playwright and axe-core and write JSON plus Markdown accessibility reports
+- `a11y-fix-guide`: fix actionable axe findings from accessibility reports, asking before color-contrast changes
+- `architecture-diagram`: build standalone HTML architecture diagrams and resource allocation tables from spreadsheets, images, or text
 - `doc`: create, edit, and review DOCX documents with layout-aware tooling
 - `gh-address-comments`: address GitHub PR comments with bundled scripts and UI assets
 - `gh-fix-ci`: inspect failing GitHub Actions checks and guide CI fixes

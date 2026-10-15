@@ -117,6 +117,65 @@ test("install --skills는 modern-minimal-ui 스킬도 설치할 수 있다", asy
   assert.match(result.stdout, /- selected: modern-minimal-ui/);
 });
 
+test("install --skills는 architecture-diagram 스킬도 설치할 수 있다", async (t) => {
+  const projectDir = await createTempProject(t);
+
+  const result = runCli([
+    "install",
+    "codex",
+    "--scope",
+    "project",
+    "--cwd",
+    projectDir,
+    "--skills",
+    "architecture-diagram"
+  ]);
+
+  assert.equal(result.status, 0);
+  const skillDir = path.join(projectDir, ".codex", "skills", "architecture-diagram");
+  assert.equal(await pathExists(path.join(skillDir, "SKILL.md")), true);
+  assert.equal(await pathExists(path.join(skillDir, "references", "allocation.md")), true);
+  assert.equal(
+    await pathExists(path.join(skillDir, "references", "architecture-reference.html")),
+    true
+  );
+  assert.equal(await pathExists(path.join(skillDir, "agents", "openai.yaml")), true);
+  assert.match(result.stdout, /- selected: architecture-diagram/);
+});
+
+test("install --skills는 a11y-audit-guide와 a11y-fix-guide 스킬도 설치할 수 있다", async (t) => {
+  const projectDir = await createTempProject(t);
+
+  const result = runCli([
+    "install",
+    "claude",
+    "--scope",
+    "project",
+    "--cwd",
+    projectDir,
+    "--skills",
+    "a11y-audit-guide,a11y-fix-guide"
+  ]);
+
+  assert.equal(result.status, 0);
+  const skillsDir = path.join(projectDir, ".claude", "skills");
+  assert.equal(
+    await pathExists(path.join(skillsDir, "a11y-audit-guide", "scripts", "src", "run-audit.ts")),
+    true
+  );
+  assert.equal(
+    await pathExists(path.join(skillsDir, "a11y-audit-guide", "examples", "local-a11y-config.json")),
+    true
+  );
+  assert.equal(
+    await pathExists(
+      path.join(skillsDir, "a11y-fix-guide", "references", "remediation-patterns.md")
+    ),
+    true
+  );
+  assert.match(result.stdout, /- selected: a11y-audit-guide, a11y-fix-guide/);
+});
+
 test("install --skills는 mise-review 스킬도 self-contained 레이아웃으로 설치할 수 있다", async (t) => {
   const projectDir = await createTempProject(t);
 
