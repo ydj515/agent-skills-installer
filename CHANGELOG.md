@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple release-oriented changelog format.
 
+## [0.1.8]
+
+### Highlights
+
+- added a bundled `hiring-analyzer` skill for evidence-based resume reviews from seven reviewer perspectives and fact-preserving rewrites
+
+### Added
+
+- bundled `hiring-analyzer` skill with seven reviewer perspectives, consolidated findings, fact-preserving rebuild, and unresolved-question tracking
+- `hiring-analyzer` catalog entry and README and guide listings
+
 ## [0.1.7]
 
 ### Highlights
