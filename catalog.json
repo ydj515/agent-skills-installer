@@ -2,6 +2,17 @@
   "schemaVersion": 2,
   "skills": [
     {
+      "id": "hiring-analyzer",
+      "title": "Hiring Analyzer",
+      "description": "Review resumes through seven evidence-based perspectives and rebuild them without inventing applicant facts.",
+      "version": "1.0.0",
+      "sourceDir": "skills/hiring-analyzer",
+      "targets": ["codex", "claude", "gemini"],
+      "enabledByDefault": true,
+      "tags": ["resume", "hiring", "review"],
+      "groups": ["document", "review"]
+    },
+    {
       "id": "gh-address-comments",
       "title": "GH Address Comments",
       "description": "Address GitHub PR review comments with bundled helper scripts and skill metadata.",

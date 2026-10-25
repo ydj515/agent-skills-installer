@@ -72,6 +72,7 @@ The bundled catalog currently ships with these skills:
 - `gh-address-comments`: address GitHub PR comments with bundled scripts and UI assets
 - `gh-fix-ci`: inspect failing GitHub Actions checks and guide CI fixes
 - `gitlab-mr-review`: review GitLab merge requests with bundled API helpers, references, and comment workflows
+- `hiring-analyzer`: review resumes from seven evidence-based perspectives and produce a fact-preserving rewrite with unresolved questions tracked
 - `modern-minimal-ui`: apply a polished modern minimal UI system to web frontend projects
 - `pdf`: read, create, or review PDF files with rendering-oriented helpers
 - `playwright`: browser automation with a bundled CLI wrapper and references
