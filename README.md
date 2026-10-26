@@ -2,85 +2,86 @@
 
 [![CI](https://github.com/ydj515/agent-skills-installer/actions/workflows/ci.yml/badge.svg)](https://github.com/ydj515/agent-skills-installer/actions/workflows/ci.yml)
 [![Release Publish Package](https://github.com/ydj515/agent-skills-installer/actions/workflows/release-publish.yml/badge.svg)](https://github.com/ydj515/agent-skills-installer/actions/workflows/release-publish.yml)
+[![Sync Development Standards](https://github.com/ydj515/agent-skills-installer/actions/workflows/sync-dev-standards.yml/badge.svg)](https://github.com/ydj515/agent-skills-installer/actions/workflows/sync-dev-standards.yml)
 [![npm version](https://img.shields.io/npm/v/agent-skills-installer.svg?logo=npm)](https://www.npmjs.com/package/agent-skills-installer)
 [![Node.js](https://img.shields.io/badge/Node.js-24.19.0%20(%3E%3D20.0.0)-339933?logo=nodedotjs&logoColor=white)](./mise.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-Codex, Claude Code, Gemini CLI를 위한 번들 Agent Skills를 단일 `npx` 진입점으로 설치·관리하는 npm CLI입니다.
-하나의 공통 스킬 소스 트리(`skills/<skill-id>/`)를 에이전트별 지원 디렉터리 레이아웃에 맞게 필터링하여 사용자(`user`) 또는 프로젝트(`project`) 범위에 설치합니다.
-소유권 마커(`.agent-skills-installer.json`), 잠금 파일, 임시 스테이징 복사 방식으로 기존 비관리 디렉터리의 덮어쓰기를 방지합니다.
+A public npm CLI that installs and manages bundled Agent Skills for Codex, Claude Code, and Gemini CLI from a single `npx` entrypoint.
+It maintains one shared source tree per skill (`skills/<skill-id>/`) and adapts top-level files to each target's supported directory layout for `user` or `project` scope installations.
+Ownership markers (`.agent-skills-installer.json`), lock files, and atomic staged copies prevent unsafe overwrites of unmanaged directories.
 
-**기술 스택:** Node.js (ESM, `>=20.0.0`) · npm CLI · node:test · mise · GitHub Actions
+**Tech Stack:** Node.js (ESM, `>=20.0.0`) · npm CLI · `node:test` · mise · GitHub Actions
 
-## 주요 기능
+## Highlights
 
-- **멀티 에이전트 레이아웃 변환:** 동일한 패키징 스킬을 Codex, Claude Code, Gemini CLI의 각 스킬 디렉터리 규칙에 맞춰 자동 변환 및 설치
-- **대화형 위저드와 필터 CLI:** 검색·그룹·태그 필터를 지원하는 터미널 위저드와 `--skills`, `--tag`, `--group`, `--dry-run` 기반의 직접 명령 지원
-- **안전한 파일 프로비저닝:** 소유권 마커 검증, 동시 실행 잠금(Lock), 원자적 임시 디렉터리 교체로 안전한 설치·업데이트·삭제 보장
+- **Multi-Agent Layout Adaptation:** Filters and installs packaged skills into the exact directory structure expected by Codex, Claude Code, and Gemini CLI
+- **Interactive Wizard & Filtered CLI:** Provides an interactive terminal wizard with search/group/tag filtering alongside direct `install`, `list`, `update`, and `remove` commands
+- **Safe Provisioning Model:** Uses ownership markers, concurrent lock files, and atomic temporary directory swaps to guard against accidental data loss
 
-## 번들 스킬
+## Bundled Skills
 
-[`catalog.json`](./catalog.json)에 포함된 주요 스킬 구성입니다.
+Bundled skills defined in [`catalog.json`](./catalog.json):
 
-- **코드 리뷰·협업:** `gh-address-comments`, `gh-fix-ci`, `gitlab-mr-review`, `trello`, `hiring-analyzer`
-- **웹·UI·다이어그램:** `playwright`, `a11y-audit-guide`, `a11y-fix-guide`, `modern-minimal-ui`, `architecture-diagram`
-- **문서 자동화:** `doc` (DOCX), `pdf` (PDF)
-- **mise 워크플로우:** `mise-env`, `mise-policy`, `mise-profiles`, `mise-review`, `mise-tasks`, `mise-tools`, `mise-lock`, `mise-ci`
+- **Code Review & Collaboration:** `gh-address-comments`, `gh-fix-ci`, `gitlab-mr-review`, `trello`, `hiring-analyzer`
+- **Web, UI & Architecture:** `playwright`, `a11y-audit-guide`, `a11y-fix-guide`, `modern-minimal-ui`, `architecture-diagram`
+- **Document Automation:** `doc` (DOCX), `pdf` (PDF)
+- **Mise Workflows:** `mise-env`, `mise-policy`, `mise-profiles`, `mise-review`, `mise-tasks`, `mise-tools`, `mise-lock`, `mise-ci`
 
-## 요구 사항
+## Requirements
 
-- **CLI 실행:** Node.js `>=20.0.0` (macOS, Linux 지원)
-- **로컬 개발:** [mise](https://mise.jdx.dev/) — 개발용 Node.js 버전(`24.19.0`)은 [`mise.toml`](./mise.toml)에 고정되어 있으며 `mise`가 설치합니다.
+- **CLI Usage:** Node.js `>=20.0.0` on macOS or Linux (Windows is not officially supported in `v0.x`)
+- **Local Development:** [mise](https://mise.jdx.dev/) — Node.js (`24.19.0`) is pinned in [`mise.toml`](./mise.toml) and installed by `mise`.
 
-## 빠른 시작
+## Quick Start
 
-### `npx`로 바로 사용하기
+### Install via `npx`
 
 ```bash
-# 대화형 설치 위저드 실행
+# Launch the interactive installation wizard
 npx agent-skills-installer
 
-# 타깃 및 스킬 지정 설치
+# Direct installation by target, scope, or skill selection
 npx agent-skills-installer install codex
 npx agent-skills-installer install all --scope project
 npx agent-skills-installer install codex --skills playwright,trello
 npx agent-skills-installer install all --scope project --dry-run
 
-# 설치 목록 확인, 업데이트, 제거
+# Inspect, update, or remove installed skills
 npx agent-skills-installer list all
 npx agent-skills-installer update all
 npx agent-skills-installer remove codex --skills playwright
 ```
 
-### 로컬 개발 환경 실행
+### Local Development
 
 ```bash
-mise trust       # 최초 1회, mise.toml 검토 후 신뢰
-mise install     # 고정된 Node.js(24.19.0) 설치
-mise run verify  # 테스트 + 패키지 번들 검증 + npx 스모크 테스트
+mise trust       # One-time: review and trust mise.toml
+mise install     # Install pinned Node.js (24.19.0)
+mise run verify  # Run tests, dry-run tarball pack, and npx smoke test
 ```
 
-타깃별 스킬 디렉터리 구조, 설치 경로, 잠금·충돌 처리 정책, 배포 절차는 [상세 가이드](./docs/GUIDE.md)에 설명합니다.
+Target directory layouts, install locations, lock/conflict rules, and release workflows are documented in the [Guide](./docs/GUIDE.md).
 
-## 주요 명령
+## Key Commands
 
-| 명령 | 설명 |
+| Command | Description |
 | --- | --- |
-| `mise run start` | 로컬 CLI 실행 (`node src/cli.js`) |
-| `mise run test` | 자동화 테스트 스위트 실행 (`npm test`) |
-| `mise run test-matrix` | CI 지원 런타임(Node 20, 22, 24) 전체 테스트 실행 |
-| `mise run pack` | 배포용 npm 타르볼 구성 검증 (`npm pack --dry-run`) |
-| `mise run smoke` | 타르볼 생성 후 격리 환경에서 `npx` 설치 스모크 테스트 |
-| `mise run verify` | `test` + `pack` + `smoke` 통합 품질 검증 |
+| `mise run start` | Run the CLI locally (`node src/cli.js`) |
+| `mise run test` | Run the automated test suite (`npm test`) |
+| `mise run test-matrix` | Run the test suite across Node.js `20`, `22`, and `24` |
+| `mise run pack` | Dry-run the publishable npm tarball (`npm pack --dry-run`) |
+| `mise run smoke` | Pack the tarball and smoke-test installation through `npx` |
+| `mise run verify` | Run `test` + `pack` + `smoke` verification gate |
 
-전체 task 목록은 `mise tasks`로 확인할 수 있습니다.
+Run `mise tasks` to see the full task list.
 
-## 문서
+## Documentation
 
-- [사용 및 운영 가이드](./docs/GUIDE.md)
-- [구현 계획 및 설계 배경](./docs/IMPLEMENTATION_PLAN.md)
-- [변경 이력 (CHANGELOG)](./CHANGELOG.md)
+- [Usage & Operations Guide](./docs/GUIDE.md)
+- [Implementation Plan](./docs/IMPLEMENTATION_PLAN.md)
+- [Changelog](./CHANGELOG.md)
 
-## 기여
+## Contributing
 
-변경 전 [기여 가이드](./CONTRIBUTING.md)를 확인해 주세요.
+Please read the [Contributing Guide](./CONTRIBUTING.md) before submitting changes.
