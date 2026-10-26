@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple release-oriented changelog format.
 
+## [0.1.9]
+
+### Highlights
+
+- restructured the root `README.md` into a concise open-source overview with CI/release/standards badges, quick start examples, and command tables
+- added `CONTRIBUTING.md` and the `sync-dev-standards.yml` workflow for shared development standards synchronization
+
+### Added
+
+- `CONTRIBUTING.md` documenting `mise` setup, skill bundle rules, and verification requirements
+- `.github/workflows/sync-dev-standards.yml` and `.dev-standards/config.yml` for automated development standards synchronization
+
+### Changed
+
+- streamlined `README.md` with workflow and package badges, grouped skill listings, and documentation links
+
 ## [0.1.8]
 
 ### Highlights
