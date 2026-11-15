@@ -4,7 +4,7 @@
 [![Release Publish Package](https://github.com/ydj515/agent-skills-installer/actions/workflows/release-publish.yml/badge.svg?event=release)](https://github.com/ydj515/agent-skills-installer/actions/workflows/release-publish.yml)
 [![Sync Development Standards](https://github.com/ydj515/agent-skills-installer/actions/workflows/sync-dev-standards.yml/badge.svg?branch=main)](https://github.com/ydj515/agent-skills-installer/actions/workflows/sync-dev-standards.yml)
 [![npm version](https://img.shields.io/npm/v/agent-skills-installer.svg?logo=npm)](https://www.npmjs.com/package/agent-skills-installer)
-[![Node.js](https://img.shields.io/badge/Node.js-24.19.0%20(%3E%3D20.0.0)-339933?logo=nodedotjs&logoColor=white)](./mise.toml)
+[![Node.js](https://img.shields.io/badge/Node.js-24.22.3%20(%3E%3D20.0.0)-339933?logo=nodedotjs&logoColor=white)](./mise.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 A public npm CLI that installs and manages bundled Agent Skills for Codex, Claude Code, and Gemini CLI from a single `npx` entrypoint.
@@ -31,7 +31,7 @@ Bundled skills defined in [`catalog.json`](./catalog.json):
 ## Requirements
 
 - **CLI Usage:** Node.js `>=20.0.0` on macOS or Linux (Windows is not officially supported in `v0.x`)
-- **Local Development:** [mise](https://mise.jdx.dev/) — Node.js (`24.19.0`) is pinned in [`mise.toml`](./mise.toml) and installed by `mise`.
+- **Local Development:** [mise](https://mise.jdx.dev/) — Node.js (`24.22.3`) is pinned in [`mise.toml`](./mise.toml) and installed by `mise`.
 
 ## Quick Start
 
@@ -57,7 +57,7 @@ npx agent-skills-installer remove codex --skills playwright
 
 ```bash
 mise trust       # One-time: review and trust mise.toml
-mise install     # Install pinned Node.js (24.19.0)
+mise install     # Install pinned Node.js (24.22.3)
 mise run verify  # Run tests, dry-run tarball pack, and npx smoke test
 ```
 
